@@ -5,10 +5,13 @@ A baseclass for a generic client for accessing XBlock Scope.user_state field dat
 from abc import abstractmethod
 
 from contracts import contract, new_contract, ContractsMeta
+from datetime import datetime
 from opaque_keys.edx.keys import UsageKey
 from xblock.fields import Scope, ScopeBase
 
 new_contract('UsageKey', UsageKey)
+new_contract('basestring', basestring)
+new_contract('datetime', datetime)
 
 
 class XBlockUserStateClient(object):

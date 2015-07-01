@@ -5,5 +5,10 @@ setup(
     version="1.0.0",
     packages=[
         "edx_user_state_client",
+    ],
+    install_requires=[
+        "PyContracts",
+        "opaque-keys",
+        "xblock",
     ]
 )
