@@ -1,74 +1,137 @@
+"""
+Tests of all installed XBlockUserStateClient backend implementations.
+
+If you wish to include these tests in your own backend implementation
+test suite, use the snippet:
+
+    from edx_user_state_client.tests import UserStateClientTestBase
+
+    class TestMyUserStateClient(UserStateClientTestBase):
+        __test__ = True
+
+        def setUp(self):
+            super(TestDictUserStateClient, self).setUp()
+            self.client = MyUserStateClient()  # Add your setup here
+
+"""
+
 from unittest import TestCase
 from edx_user_state_client.interface import XBlockUserStateClient
 from xblock.fields import Scope
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 
+
 class UserStateClientTestBase(TestCase):
+    """
+    Blackbox tests for XBlockUserStateClient implementations.
+    """
 
     __test__ = False
 
     scope = Scope.user_state
+    client = None
 
-    def user(self, user_idx):
+    def _user(self, user_idx):
+        """Return the username for user ``user_idx``"""
         return "user{}".format(user_idx)
 
-    def block(self, block_idx):
+    def _block(self, block_idx):
+        """Return a UsageKey for the block ``block_idx``"""
         return BlockUsageLocator(
             CourseLocator('org', 'course', 'run'),
             'block_type',
             'block{}'.format(block_idx)
         )
 
-    def field(self, field_idx):
-        return "field{}".format(field_idx)
-
     def get(self, user_idx, block_idx, fields=None):
+        """
+        Get the state for the specified user and block.
+
+        This wraps :meth:`~XBlockUserStateClient.get`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
         return self.client.get(
-            self.user(user_idx),
-            self.block(block_idx),
+            self._user(user_idx),
+            self._block(block_idx),
             self.scope,
             fields=fields
         )
 
     def set(self, user_idx, block_idx, state):
+        """
+        Set the state for the specified user and block.
+
+        This wraps :meth:`~XBlockUserStateClient.set`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
         return self.client.set(
-            self.user(user_idx),
-            self.block(block_idx),
+            self._user(user_idx),
+            self._block(block_idx),
             state,
             self.scope,
         )
 
     def delete(self, user_idx, block_idx, fields=None):
+        """
+        Delete the state for the specified user and block.
+
+        This wraps :meth:`~XBlockUserStateClient.delete`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
         return self.client.delete(
-            self.user(user_idx),
-            self.block(block_idx),
+            self._user(user_idx),
+            self._block(block_idx),
             self.scope,
             fields
         )
 
+    def get_many(self, user_idx, block_idxs, fields=None):
+        """
+        Get the state for the specified user and blocks.
+
+        This wraps :meth:`~XBlockUserStateClient.get_many`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
+        return self.client.get_many(
+            self._user(user_idx),
+            [self._block(block_idx) for block_idx in block_idxs],
+            self.scope,
+            fields,
+        )
+
     def set_many(self, user_idx, block_idx_to_state):
+        """
+        Set the state for the specified user and blocks.
+
+        This wraps :meth:`~XBlockUserStateClient.set_many`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
         return self.client.set_many(
-            self.user(user_idx),
+            self._user(user_idx),
             {
-                self.block(block_idx): state
+                self._block(block_idx): state
                 for block_idx, state
                 in block_idx_to_state.items()
             },
             self.scope,
         )
 
-    def get_many(self, user_idx, block_idxs, fields=None):
-        return self.client.get_many(
-            self.user(user_idx),
-            [self.block(block_idx) for block_idx in block_idxs],
-            self.scope,
-            fields,
-        )
-
     def delete_many(self, user_idx, block_idxs, fields=None):
+        """
+        Delete the state for the specified user and blocks.
+
+        This wraps :meth:`~XBlockUserStateClient.delete_many`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
         return self.client.delete_many(
-            self.user(user_idx),
-            [self.block(block_idx) for block_idx in block_idxs],
+            self._user(user_idx),
+            [self._block(block_idx) for block_idx in block_idxs],
             self.scope,
             fields,
         )
@@ -134,8 +197,8 @@ class UserStateClientTestBase(TestCase):
         self.assertItemsEqual(
             self.get_many(0, [0, 1]),
             [
-                (self.block(0), {'a': 'b'}),
-                (self.block(1), {'b': 'c'})
+                (self._block(0), {'a': 'b'}),
+                (self._block(1), {'b': 'c'})
             ]
         )
 
@@ -145,7 +208,7 @@ class UserStateClientTestBase(TestCase):
 
         self.set(0, 0, {'a': 'b'})
         self.assertEqual(self.get(0, 0), {'a': 'b'})
-        
+
         self.delete(0, 0)
         with self.assertRaises(self.client.DoesNotExist):
             self.get(0, 0)
@@ -156,7 +219,7 @@ class UserStateClientTestBase(TestCase):
 
         self.set(0, 0, {'a': 'b', 'b': 'c'})
         self.assertEqual(self.get(0, 0), {'a': 'b', 'b': 'c'})
-        
+
         self.delete(0, 0, ['a'])
         self.assertEqual(self.get(0, 0), {'b': 'c'})
 
@@ -206,6 +269,10 @@ class UserStateClientTestBase(TestCase):
 
 
 class DictUserStateClient(XBlockUserStateClient):
+    """
+    The simplest possible in-memory implementation of DictUserStateClient,
+    for testing the tests.
+    """
     def __init__(self):
         self._data = {}
 
@@ -250,9 +317,33 @@ class DictUserStateClient(XBlockUserStateClient):
     def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         raise NotImplementedError()
 
+    def get_history(self, username, block_key, scope=Scope.user_state):
+        """We don't guarantee that history for many blocks will be fast."""
+        raise NotImplementedError()
+
+    def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
+        """
+        You get no ordering guarantees. Fetching will happen in batch_size
+        increments. If you're using this method, you should be running in an
+        async task.
+        """
+        raise NotImplementedError()
+
+    def iter_all_for_course(self, course_key, block_type=None, scope=Scope.user_state, batch_size=None):
+        """
+        You get no ordering guarantees. Fetching will happen in batch_size
+        increments. If you're using this method, you should be running in an
+        async task.
+        """
+        raise NotImplementedError()
+
 
 class TestDictUserStateClient(UserStateClientTestBase):
+    """
+    Tests of the DictUserStateClient backend.
+    """
     __test__ = True
 
     def setUp(self):
+        super(TestDictUserStateClient, self).setUp()
         self.client = DictUserStateClient()
