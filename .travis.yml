@@ -7,7 +7,9 @@ python:
 install:
   - pip install tox
   - pip install coveralls
+  - pip install sphinx
+  - pip install -r doc/requirements.txt
 script:
-  - make test doc quality
+  - make test docs quality
 after_success:
   - coveralls

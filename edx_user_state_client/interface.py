@@ -20,26 +20,28 @@ class XBlockUserStateClient(object):
     use StudentModule as a backing store in the default case.
 
     Scope/Goals:
-    1. Mediate access to all student-specific state stored by XBlocks.
-        a. This includes "preferences" and "user_info" (i.e. UserScope.ONE)
-        b. This includes XBlock Asides.
-        c. This may later include user_state_summary (i.e. UserScope.ALL).
-        d. This may include group state in the future.
-        e. This may include other key types + UserScope.ONE (e.g. Definition)
-    2. Assume network service semantics.
-        At some point, this will probably be calling out to an external service.
-        Even if it doesn't, we want to be able to implement circuit breakers, so
-        that a failure in StudentModule doesn't bring down the whole site.
-        This also implies that the client is running as a user, and whatever is
-        backing it is smart enough to do authorization checks.
-    3. This does not yet cover export-related functionality.
+
+        1. Mediate access to all student-specific state stored by XBlocks.
+            a. This includes "preferences" and "user_info" (i.e. UserScope.ONE)
+            b. This includes XBlock Asides.
+            c. This may later include user_state_summary (i.e. UserScope.ALL).
+            d. This may include group state in the future.
+            e. This may include other key types + UserScope.ONE (e.g. Definition)
+        2. Assume network service semantics.
+            At some point, this will probably be calling out to an external service.
+            Even if it doesn't, we want to be able to implement circuit breakers, so
+            that a failure in StudentModule doesn't bring down the whole site.
+            This also implies that the client is running as a user, and whatever is
+            backing it is smart enough to do authorization checks.
+        3. This does not yet cover export-related functionality.
 
     Open Questions:
-    1. Is it sufficient to just send the block_key in and extract course +
-       version info from it?
-    2. Do we want to use the username as the identifier? Privacy implications?
-       Ease of debugging?
-    3. Would a get_many_by_type() be useful?
+
+        1. Is it sufficient to just send the block_key in and extract course +
+        version info from it?
+        2. Do we want to use the username as the identifier? Privacy implications?
+        Ease of debugging?
+        3. Would a get_many_by_type() be useful?
     """
 
     __metaclass__ = ContractsMeta
