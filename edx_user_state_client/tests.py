@@ -38,6 +38,14 @@ class UserStateClientTestBase(TestCase):
             self.scope,
         )
 
+    def delete(self, user_idx, block_idx, fields=None):
+        return self.client.delete(
+            self.user(user_idx),
+            self.block(block_idx),
+            self.scope,
+            fields
+        )
+
     def set_many(self, user_idx, block_idx_to_state):
         return self.client.set_many(
             self.user(user_idx),
@@ -51,6 +59,14 @@ class UserStateClientTestBase(TestCase):
 
     def get_many(self, user_idx, block_idxs, fields=None):
         return self.client.get_many(
+            self.user(user_idx),
+            [self.block(block_idx) for block_idx in block_idxs],
+            self.scope,
+            fields,
+        )
+
+    def delete_many(self, user_idx, block_idxs, fields=None):
+        return self.client.delete_many(
             self.user(user_idx),
             [self.block(block_idx) for block_idx in block_idxs],
             self.scope,
@@ -123,6 +139,71 @@ class UserStateClientTestBase(TestCase):
             ]
         )
 
+    def test_delete(self):
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get(0, 0)
+
+        self.set(0, 0, {'a': 'b'})
+        self.assertEqual(self.get(0, 0), {'a': 'b'})
+        
+        self.delete(0, 0)
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get(0, 0)
+
+    def test_delete_partial(self):
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get(0, 0)
+
+        self.set(0, 0, {'a': 'b', 'b': 'c'})
+        self.assertEqual(self.get(0, 0), {'a': 'b', 'b': 'c'})
+        
+        self.delete(0, 0, ['a'])
+        self.assertEqual(self.get(0, 0), {'b': 'c'})
+
+    def test_delete_last_field(self):
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get(0, 0)
+
+        self.set(0, 0, {'a': 'b'})
+        self.assertEqual(self.get(0, 0), {'a': 'b'})
+
+        self.delete(0, 0, ['a'])
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get(0, 0)
+
+    def test_delete_many(self):
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+
+        self.set_many(0, {
+            0: {'a': 'b'},
+            1: {'b': 'c'},
+        })
+
+        self.delete_many(0, [0, 1])
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+
+    def test_delete_many_partial(self):
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+
+        self.set_many(0, {
+            0: {'a': 'b'},
+            1: {'b': 'c'},
+        })
+
+        self.delete_many(0, [0, 1], ['a'])
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [(self._block(1), {'b': 'c'})])
+
+    def test_delete_many_last_field(self):
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+
+        self.set_many(0, {
+            0: {'a': 'b'},
+            1: {'b': 'c'},
+        })
+
+        self.delete_many(0, [0, 1], ['a', 'b'])
+        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+
 
 class DictUserStateClient(XBlockUserStateClient):
     def __init__(self):
@@ -133,8 +214,10 @@ class DictUserStateClient(XBlockUserStateClient):
             if (username, key, scope) not in self._data:
                 continue
 
+            data = self._data[(username, key, scope)]
+
             if fields is None:
-                current_fields = self._data[(username, key, scope)].keys()
+                current_fields = data.keys()
             else:
                 current_fields = fields
 
@@ -150,7 +233,19 @@ class DictUserStateClient(XBlockUserStateClient):
             self._data.setdefault((username, key, scope), {}).update(state)
 
     def delete_many(self, username, block_keys, scope=Scope.user_state, fields=None):
-        raise NotImplementedError()
+        for key in block_keys:
+            if (username, key, scope) not in self._data:
+                continue
+
+            if fields is None:
+                del self._data[(username, key, scope)]
+            else:
+                data = self._data[(username, key, scope)]
+                for field in fields:
+                    if field in data:
+                        del data[field]
+                if not data:
+                    del self._data[(username, key, scope)]
 
     def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         raise NotImplementedError()
