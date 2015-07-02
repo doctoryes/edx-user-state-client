@@ -5,8 +5,8 @@ docs:
 	cd doc && make html
 
 quality:
-	pep8 --exclude=.tox
-	script/max_pylint_violations
+	pep8
+	pylint edx_user_state_client
 
 package:
 	python setup.py register sdist upload
