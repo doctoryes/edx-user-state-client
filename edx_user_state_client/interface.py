@@ -69,7 +69,8 @@ class XBlockUserStateClient(object):
         block_key=UsageKey,
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
-        returns="dict(basestring: *)"
+        returns="dict(basestring: *)",
+        modify_docstring=False,
     )
     def get(self, username, block_key, scope=Scope.user_state, fields=None):
         """
@@ -95,6 +96,7 @@ class XBlockUserStateClient(object):
         state="dict(basestring: *)",
         scope=ScopeBase,
         returns=None,
+        modify_docstring=False,
     )
     def set(self, username, block_key, state, scope=Scope.user_state):
         """
@@ -114,6 +116,7 @@ class XBlockUserStateClient(object):
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns=None,
+        modify_docstring=False,
     )
     def delete(self, username, block_key, scope=Scope.user_state, fields=None):
         """
@@ -133,6 +136,7 @@ class XBlockUserStateClient(object):
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns="dict(basestring: datetime)",
+        modify_docstring=False,
     )
     def get_mod_date(self, username, block_key, scope=Scope.user_state, fields=None):
         """
@@ -159,6 +163,7 @@ class XBlockUserStateClient(object):
         block_keys="seq(UsageKey)|set(UsageKey)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
+        modify_docstring=False,
     )
     @abstractmethod
     def get_many(self, username, block_keys, scope=Scope.user_state, fields=None):
@@ -182,6 +187,7 @@ class XBlockUserStateClient(object):
         block_keys_to_state="dict(UsageKey: dict(basestring: *))",
         scope=ScopeBase,
         returns=None,
+        modify_docstring=False,
     )
     @abstractmethod
     def set_many(self, username, block_keys_to_state, scope=Scope.user_state):
@@ -204,6 +210,7 @@ class XBlockUserStateClient(object):
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns=None,
+        modify_docstring=False,
     )
     @abstractmethod
     def delete_many(self, username, block_keys, scope=Scope.user_state, fields=None):
@@ -223,6 +230,7 @@ class XBlockUserStateClient(object):
         block_keys="seq(UsageKey)|set(UsageKey)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
+        modify_docstring=False,
     )
     @abstractmethod
     def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
