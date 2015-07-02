@@ -82,7 +82,10 @@ class XBlockUserStateClient(object):
         Returns
             dict: A dictionary mapping field names to values
         """
-        return next(self.get_many(username, [block_key], scope, fields=fields))[1]
+        try:
+            return next(self.get_many(username, [block_key], scope, fields=fields))[1]
+        except StopIteration:
+            raise self.DoesNotExist()
 
     @contract(
         username="basestring",
