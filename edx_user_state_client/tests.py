@@ -18,7 +18,7 @@ test suite, use the snippet:
 from datetime import datetime
 
 from unittest import TestCase
-from edx_user_state_client.interface import XBlockUserStateClient, UserStateHistory
+from edx_user_state_client.interface import XBlockUserStateClient, UserStateHistory, UserState
 from xblock.fields import Scope
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 
@@ -221,8 +221,8 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.assertItemsEqual(
             self.get_many(0, [0, 1]),
             [
-                (self._block(0), {'a': 'b'}),
-                (self._block(1), {'b': 'c'})
+                UserState(self._block(0), {'a': 'b'}),
+                UserState(self._block(1), {'b': 'c'})
             ]
         )
 
@@ -386,7 +386,7 @@ class DictUserStateClient(XBlockUserStateClient):
                 current_fields = fields
 
             data = self._data[(username, key, scope)]
-            yield (key, {
+            yield UserState(key, {
                 field: data[field]
                 for field in current_fields
                 if field in data

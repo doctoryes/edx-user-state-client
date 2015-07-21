@@ -33,6 +33,23 @@ class UserStateHistory(namedtuple('_UserStateHistory', ['updated', 'state'])):
         )
 
 
+class UserState(namedtuple('_UserState', ['block_key', 'state'])):
+    """
+    The current state of a single XBlock.
+
+    Arguments:
+        block_key: The :class:`UsageKey` of the XBlock.
+        state: A dict mapping field names to the values of those fields for this XBlock.
+    """
+    __slots__ = ()
+
+    def __repr__(self):
+        return "{}{!r}".format(
+            self.__class__.__name__,
+            tuple(self)
+        )
+
+
 class XBlockUserStateClient(object):
     """
     First stab at an interface for accessing XBlock User State. This will have
@@ -196,7 +213,7 @@ class XBlockUserStateClient(object):
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Yields:
-            (UsageKey, field_state) tuples for each specified UsageKey in block_keys.
+            UserState tuples for each specified UsageKey in block_keys.
             field_state is a dict mapping field names to values.
         """
         raise NotImplementedError()
