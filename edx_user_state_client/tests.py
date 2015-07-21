@@ -152,6 +152,19 @@ class _UserStateClientTestUtils(TestCase):
             self.scope,
         )
 
+    def iter_all_for_block(self, block_idx):
+        """
+        Yield the state for all users for the specified block.
+
+        This wraps :meth:`~XBlockUserStateClient.iter_all_for_blocks`
+        to take indexes rather than actual values, to make tests easier
+        to write concisely.
+        """
+        return self.client.iter_all_for_block(
+            self._block(block_idx),
+            self.scope,
+        )
+
 
 class _UserStateClientTestCRUD(_UserStateClientTestUtils):
     """
@@ -373,7 +386,63 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
         )
 
 
-class UserStateClientTestBase(_UserStateClientTestCRUD, _UserStateClientTestHistory):
+class _UserStateClientTestIterAll(_UserStateClientTestUtils):
+    """
+    Blackbox tests of basic XBlockUserStateClient global iteration functionality.
+    """
+
+    __test__ = False
+
+    def test_iter_blocks_empty(self):
+        self.assertItemsEqual(
+            self.iter_all_for_block(0),
+            []
+        )
+
+    def test_iter_blocks_single_user(self):
+        self.set_many(0, {0: {'a': 'b'}, 1: {'c': 'd'}})
+
+        self.assertItemsEqual(
+            (item.state for item in self.iter_all_for_block(0)),
+            [{'a': 'b'}]
+        )
+
+        self.assertItemsEqual(
+            (item.state for item in self.iter_all_for_block(1)),
+            [{'c': 'd'}]
+        )
+
+    def test_iter_blocks_many_users(self):
+        for user in xrange(3):
+            self.set_many(user, {0: {'a': user}, 1: {'c': user}})
+
+        self.assertItemsEqual(
+            ((item.username, item.state) for item in self.iter_all_for_block(0)),
+            [
+                (self._user(0), {'a': 0}),
+                (self._user(1), {'a': 1}),
+                (self._user(2), {'a': 2}),
+            ]
+        )
+
+    def test_iter_blocks_deleted_block(self):
+        for user in xrange(3):
+            self.set_many(user, {0: {'a': user}, 1: {'c': user}})
+
+        self.delete(1, 0)
+
+        self.assertItemsEqual(
+            ((item.username, item.state) for item in self.iter_all_for_block(0)),
+            [
+                (self._user(0), {'a': 0}),
+                (self._user(2), {'a': 2}),
+            ]
+        )
+
+
+class UserStateClientTestBase(_UserStateClientTestCRUD,
+                              _UserStateClientTestHistory,
+                              _UserStateClientTestIterAll):
     """
     Blackbox tests for XBlockUserStateClient implementations.
     """
@@ -473,7 +542,12 @@ class DictUserStateClient(XBlockUserStateClient):
         increments. If you're using this method, you should be running in an
         async task.
         """
-        raise NotImplementedError()
+        for (_, key, scope), entries in self._history.iteritems():
+            if entries[0].state is None:
+                continue
+
+            if key == block_key and scope == scope:
+                yield entries[0]
 
     def iter_all_for_course(self, course_key, block_type=None, scope=Scope.user_state, batch_size=None):
         """
