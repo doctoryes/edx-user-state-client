@@ -3,6 +3,7 @@ A baseclass for a generic client for accessing XBlock Scope.user_state field dat
 """
 
 from abc import abstractmethod
+from collections import namedtuple
 
 from contracts import contract, new_contract, ContractsMeta
 from datetime import datetime
@@ -12,6 +13,24 @@ from xblock.fields import Scope, ScopeBase
 new_contract('UsageKey', UsageKey)
 new_contract('basestring', basestring)
 new_contract('datetime', datetime)
+
+
+class UserStateHistory(namedtuple('_UserStateHistory', ['updated', 'state'])):
+    """
+    The state of an XBlock at a single point in time.
+
+    Arguments:
+        updated: A :class:`datetime.datetime` representing the time when this state was set.
+        state: A dict of field names to the values that those fields had at the time that the
+               changes were made.
+    """
+    __slots__ = ()
+
+    def __repr__(self):
+        return "{}{!r}".format(
+            self.__class__.__name__,
+            tuple(self)
+        )
 
 
 class XBlockUserStateClient(object):
@@ -251,7 +270,21 @@ class XBlockUserStateClient(object):
         raise NotImplementedError()
 
     def get_history(self, username, block_key, scope=Scope.user_state):
-        """We don't guarantee that history for many blocks will be fast."""
+        """
+        Retrieve history of state changes for a given block for a given
+        student.  We don't guarantee that history for many blocks will be fast.
+
+        If the specified block doesn't exist, raise :class:`~DoesNotExist`.
+
+        Arguments:
+            username: The name of the user whose history should be retrieved.
+            block_key (UsageKey): The UsageKey identifying which xblock history to retrieve.
+            scope (Scope): The scope to load data from.
+
+        Yields:
+            UserStateHistory entries for each modification to the specified XBlock, from latest
+            to earliest.
+        """
         raise NotImplementedError()
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):

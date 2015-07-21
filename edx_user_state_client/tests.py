@@ -15,15 +15,17 @@ test suite, use the snippet:
 
 """
 
+from datetime import datetime
+
 from unittest import TestCase
-from edx_user_state_client.interface import XBlockUserStateClient
+from edx_user_state_client.interface import XBlockUserStateClient, UserStateHistory
 from xblock.fields import Scope
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 
 
-class UserStateClientTestBase(TestCase):
+class _UserStateClientTestUtils(TestCase):
     """
-    Blackbox tests for XBlockUserStateClient implementations.
+    Utility methods for implementing blackbox XBlockUserStateClient tests.
     """
 
     __test__ = False
@@ -135,6 +137,28 @@ class UserStateClientTestBase(TestCase):
             self.scope,
             fields,
         )
+
+    def get_history(self, user_idx, block_idx):
+        """
+        Return the state history for the specified user and block.
+
+        This wraps :meth:`~XBlockUserStateClient.get_history`
+        to take indexes rather than actual values to make tests easier
+        to write concisely.
+        """
+        return self.client.get_history(
+            self._user(user_idx),
+            self._block(block_idx),
+            self.scope,
+        )
+
+
+class _UserStateClientTestCRUD(_UserStateClientTestUtils):
+    """
+    Blackbox tests of basic XBlockUserStateClient get/set/delete functionality.
+    """
+
+    __test__ = False
 
     def test_set_get(self):
         self.set(0, 0, {'a': 'b'})
@@ -268,6 +292,78 @@ class UserStateClientTestBase(TestCase):
         self.assertItemsEqual(self.get_many(0, [0, 1]), [])
 
 
+class _UserStateClientTestHistory(_UserStateClientTestUtils):
+    """
+    Blackbox tests of basic XBlockUserStateClient history functionality.
+    """
+
+    __test__ = False
+
+    def test_empty_history(self):
+        with self.assertRaises(self.client.DoesNotExist):
+            self.get_history(0, 0)
+
+    def test_single_history(self):
+        self.set(0, 0, {'a': 'b'})
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 0)],
+            [{'a': 'b'}]
+        )
+
+    def test_multiple_history_entries(self):
+        for val in xrange(3):
+            self.set(0, 0, {'a': val})
+
+        history = list(self.get_history(0, 0))
+
+        self.assertEquals(
+            [entry.state for entry in history],
+            [{'a': 2}, {'a': 1}, {'a': 0}]
+        )
+
+        # Assert that the update times are reverse sorted (by
+        # actually reverse-sorting them, and then asserting that
+        # the sorted version is the same as the initial version)
+        self.assertEquals(
+            [entry.updated for entry in history],
+            sorted((entry.updated for entry in history), reverse=True)
+        )
+
+    def test_history_distinct(self):
+        self.set(0, 0, {'a': 0})
+        self.set(0, 1, {'a': 1})
+
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 0)],
+            [{'a': 0}]
+        )
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 1)],
+            [{'a': 1}]
+        )
+
+
+    def test_set_many_with_history(self):
+        self.set_many(0, {0: {'a': 0}, 1: {'a': 1}})
+
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 0)],
+            [{'a': 0}]
+        )
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 1)],
+            [{'a': 1}]
+        )
+
+
+class UserStateClientTestBase(_UserStateClientTestCRUD, _UserStateClientTestHistory):
+    """
+    Blackbox tests for XBlockUserStateClient implementations.
+    """
+
+    __test__ = False
+
+
 class DictUserStateClient(XBlockUserStateClient):
     """
     The simplest possible in-memory implementation of DictUserStateClient,
@@ -275,6 +371,7 @@ class DictUserStateClient(XBlockUserStateClient):
     """
     def __init__(self):
         self._data = {}
+        self._history = {}
 
     def get_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         for key in block_keys:
@@ -298,6 +395,7 @@ class DictUserStateClient(XBlockUserStateClient):
     def set_many(self, username, block_keys_to_state, scope=Scope.user_state):
         for key, state in block_keys_to_state.items():
             self._data.setdefault((username, key, scope), {}).update(state)
+            self._history.setdefault((username, key, scope), []).insert(0, UserStateHistory(datetime.now(), state))
 
     def delete_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         for key in block_keys:
@@ -318,8 +416,25 @@ class DictUserStateClient(XBlockUserStateClient):
         raise NotImplementedError()
 
     def get_history(self, username, block_key, scope=Scope.user_state):
-        """We don't guarantee that history for many blocks will be fast."""
-        raise NotImplementedError()
+        """
+        Retrieve history of state changes for a given block for a given
+        student.  We don't guarantee that history for many blocks will be fast.
+
+        If the specified block doesn't exist, raise :class:`~DoesNotExist`.
+
+        Arguments:
+            username: The name of the user whose history should be retrieved.
+            block_key (UsageKey): The UsageKey identifying which xblock history to retrieve.
+            scope (Scope): The scope to load data from.
+
+        Yields:
+            UserStateHistory entries for each modification to the specified XBlock, from latest
+            to earliest.
+        """
+        if (username, block_key, scope) not in self._history:
+            raise self.DoesNotExist(username, block_key, scope)
+
+        return iter(self._history[(username, block_key, scope)])
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
         """
