@@ -15,31 +15,15 @@ new_contract('basestring', basestring)
 new_contract('datetime', datetime)
 
 
-class UserStateHistory(namedtuple('_UserStateHistory', ['updated', 'state'])):
-    """
-    The state of an XBlock at a single point in time.
-
-    Arguments:
-        updated: A :class:`datetime.datetime` representing the time when this state was set.
-        state: A dict of field names to the values that those fields had at the time that the
-               changes were made.
-    """
-    __slots__ = ()
-
-    def __repr__(self):
-        return "{}{!r}".format(
-            self.__class__.__name__,
-            tuple(self)
-        )
-
-
-class UserState(namedtuple('_UserState', ['block_key', 'state'])):
+class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', 'state', 'updated'])):
     """
     The current state of a single XBlock.
 
     Arguments:
+        username: The username of the user that stored this state.
         block_key: The :class:`UsageKey` of the XBlock.
         state: A dict mapping field names to the values of those fields for this XBlock.
+        updated: A :class:`datetime.datetime` that identifies when this state was stored.
     """
     __slots__ = ()
 
@@ -105,7 +89,7 @@ class XBlockUserStateClient(object):
         block_key=UsageKey,
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
-        returns="dict(basestring: *)",
+        returns=XBlockUserState,
         modify_docstring=False,
     )
     def get(self, username, block_key, scope=Scope.user_state, fields=None):
@@ -119,10 +103,10 @@ class XBlockUserStateClient(object):
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Returns
-            dict: A dictionary mapping field names to values
+            XBlockUserState: The current state of the block for the specified username and block_key.
         """
         try:
-            return next(self.get_many(username, [block_key], scope, fields=fields))[1]
+            return next(self.get_many(username, [block_key], scope, fields=fields))
         except StopIteration:
             raise self.DoesNotExist()
 
@@ -213,7 +197,7 @@ class XBlockUserStateClient(object):
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Yields:
-            UserState tuples for each specified UsageKey in block_keys.
+            XBlockUserState tuples for each specified UsageKey in block_keys.
             field_state is a dict mapping field names to values.
         """
         raise NotImplementedError()
@@ -299,7 +283,7 @@ class XBlockUserStateClient(object):
             scope (Scope): The scope to load data from.
 
         Yields:
-            UserStateHistory entries for each modification to the specified XBlock, from latest
+            XBlockUserState entries for each modification to the specified XBlock, from latest
             to earliest.
         """
         raise NotImplementedError()
