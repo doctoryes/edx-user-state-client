@@ -151,7 +151,7 @@ class XBlockUserStateClient(object):
                 for all fields, if they don't store changes individually per field.
                 Implementations may omit fields for which data has not been stored.
 
-        Returns: list a dict of {field_name: modified_date} for each selected field.
+        Returns: dict of {field_name: modified_date} for each selected field.
         """
         results = self.get_mod_date_many(username, [block_key], scope, fields=fields)
         return {
