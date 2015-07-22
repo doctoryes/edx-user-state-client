@@ -3,6 +3,7 @@ A baseclass for a generic client for accessing XBlock Scope.user_state field dat
 """
 
 from abc import abstractmethod
+from collections import namedtuple
 
 from contracts import contract, new_contract, ContractsMeta
 from datetime import datetime
@@ -12,6 +13,25 @@ from xblock.fields import Scope, ScopeBase
 new_contract('UsageKey', UsageKey)
 new_contract('basestring', basestring)
 new_contract('datetime', datetime)
+
+
+class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', 'state', 'updated'])):
+    """
+    The current state of a single XBlock.
+
+    Arguments:
+        username: The username of the user that stored this state.
+        block_key: The :class:`UsageKey` of the XBlock.
+        state: A dict mapping field names to the values of those fields for this XBlock.
+        updated: A :class:`datetime.datetime` that identifies when this state was stored.
+    """
+    __slots__ = ()
+
+    def __repr__(self):
+        return "{}{!r}".format(
+            self.__class__.__name__,
+            tuple(self)
+        )
 
 
 class XBlockUserStateClient(object):
@@ -69,7 +89,7 @@ class XBlockUserStateClient(object):
         block_key=UsageKey,
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
-        returns="dict(basestring: *)",
+        returns=XBlockUserState,
         modify_docstring=False,
     )
     def get(self, username, block_key, scope=Scope.user_state, fields=None):
@@ -83,10 +103,10 @@ class XBlockUserStateClient(object):
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Returns
-            dict: A dictionary mapping field names to values
+            XBlockUserState: The current state of the block for the specified username and block_key.
         """
         try:
-            return next(self.get_many(username, [block_key], scope, fields=fields))[1]
+            return next(self.get_many(username, [block_key], scope, fields=fields))
         except StopIteration:
             raise self.DoesNotExist()
 
@@ -151,7 +171,7 @@ class XBlockUserStateClient(object):
                 for all fields, if they don't store changes individually per field.
                 Implementations may omit fields for which data has not been stored.
 
-        Returns: list a dict of {field_name: modified_date} for each selected field.
+        Returns: dict of {field_name: modified_date} for each selected field.
         """
         results = self.get_mod_date_many(username, [block_key], scope, fields=fields)
         return {
@@ -177,7 +197,7 @@ class XBlockUserStateClient(object):
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Yields:
-            (UsageKey, field_state) tuples for each specified UsageKey in block_keys.
+            XBlockUserState tuples for each specified UsageKey in block_keys.
             field_state is a dict mapping field names to values.
         """
         raise NotImplementedError()
@@ -251,7 +271,21 @@ class XBlockUserStateClient(object):
         raise NotImplementedError()
 
     def get_history(self, username, block_key, scope=Scope.user_state):
-        """We don't guarantee that history for many blocks will be fast."""
+        """
+        Retrieve history of state changes for a given block for a given
+        student.  We don't guarantee that history for many blocks will be fast.
+
+        If the specified block doesn't exist, raise :class:`~DoesNotExist`.
+
+        Arguments:
+            username: The name of the user whose history should be retrieved.
+            block_key (UsageKey): The UsageKey identifying which xblock history to retrieve.
+            scope (Scope): The scope to load data from.
+
+        Yields:
+            XBlockUserState entries for each modification to the specified XBlock, from latest
+            to earliest.
+        """
         raise NotImplementedError()
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
