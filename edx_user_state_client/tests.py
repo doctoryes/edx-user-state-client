@@ -345,6 +345,20 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
             [{'a': 1}]
         )
 
+    def test_history_after_delete(self):
+        self.set(0, 0, {str(val): val for val in xrange(3)})
+        for val in xrange(3):
+            self.delete(0, 0, [str(val)])
+
+        self.assertEquals(
+            [history.state for history in self.get_history(0, 0)],
+            [
+                None,
+                {'2': 2},
+                {'2': 2, '1': 1},
+                {'2': 2, '1': 1, '0': 0}
+            ]
+        )
 
     def test_set_many_with_history(self):
         self.set_many(0, {0: {'a': 0}, 1: {'a': 1}})
