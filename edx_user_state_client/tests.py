@@ -58,9 +58,9 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get(
-            self._user(user),
-            self._block(block),
-            self.scope,
+            username=self._user(user),
+            block_key=self._block(block),
+            scope=self.scope,
             fields=fields
         )
 
@@ -74,10 +74,10 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.set(
-            self._user(user),
-            self._block(block),
-            state,
-            self.scope,
+            username=self._user(user),
+            block_key=self._block(block),
+            state=state,
+            scope=self.scope,
         )
 
     @contract(user=int, block=int, fields="list(string)|None")
@@ -90,10 +90,10 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.delete(
-            self._user(user),
-            self._block(block),
-            self.scope,
-            fields
+            username=self._user(user),
+            block_key=self._block(block),
+            scope=self.scope,
+            fields=fields
         )
 
     @contract(user=int, blocks="list(int)", fields="list(string)|None")
@@ -106,10 +106,10 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get_many(
-            self._user(user),
-            [self._block(block) for block in blocks],
-            self.scope,
-            fields,
+            username=self._user(user),
+            block_keys=[self._block(block) for block in blocks],
+            scope=self.scope,
+            fields=fields,
         )
 
     @contract(user=int, block_to_state="dict(int: dict(string: *))")
@@ -122,13 +122,13 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.set_many(
-            self._user(user),
-            {
+            username=self._user(user),
+            block_keys_to_state={
                 self._block(block): state
                 for block, state
                 in block_to_state.items()
             },
-            self.scope,
+            scope=self.scope,
         )
 
     @contract(user=int, blocks="list(int)", fields="list(string)|None")
@@ -141,10 +141,10 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.delete_many(
-            self._user(user),
-            [self._block(block) for block in blocks],
-            self.scope,
-            fields,
+            username=self._user(user),
+            block_keys=[self._block(block) for block in blocks],
+            scope=self.scope,
+            fields=fields,
         )
 
     @contract(user=int, block=int)
@@ -157,9 +157,9 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get_history(
-            self._user(user),
-            self._block(block),
-            self.scope,
+            username=self._user(user),
+            block_key=self._block(block),
+            scope=self.scope,
         )
 
     @contract(block=int)
@@ -172,8 +172,8 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.iter_all_for_block(
-            self._block(block),
-            self.scope,
+            block_key=self._block(block),
+            scope=self.scope,
         )
 
 
