@@ -27,6 +27,10 @@ from xblock.fields import Scope
 class _UserStateClientTestUtils(TestCase):
     """
     Utility methods for implementing blackbox XBlockUserStateClient tests.
+
+    User and Block indexes should provide unique user ids and UsageKeys.
+    Course indexes should be assigned to blocks by using integer division by 1000
+    (this allows for tests of up to 1000 blocks per course).
     """
 
     __test__ = False
@@ -42,10 +46,20 @@ class _UserStateClientTestUtils(TestCase):
     @contract(block=int)
     def _block(self, block):
         """Return a UsageKey for the block ``block``"""
+        course = block // 1000
         return BlockUsageLocator(
-            CourseLocator('org', 'course', 'run'),
+            self._course(course),
             'block_type',
             'block{}'.format(block)
+        )
+
+    @contract(course=int)
+    def _course(self, course):
+        """Return a CourseKey for the course ``course_idx``"""
+        return CourseLocator(
+            'org{}'.format(course),
+            'course{}'.format(course),
+            'run{}'.format(course),
         )
 
     @contract(user=int, block=int, fields="list(string)|None")
@@ -173,6 +187,21 @@ class _UserStateClientTestUtils(TestCase):
         """
         return self.client.iter_all_for_block(
             block_key=self._block(block),
+            scope=self.scope,
+        )
+
+    @contract(course=int, block_type="string|None")
+    def iter_all_for_course(self, course, block_type=None):
+        """
+        Yield the state for all users for the specified block.
+
+        This wraps :meth:`~XBlockUserStateClient.iter_all_for_blocks`
+        to take indexes rather than actual values, to make tests easier
+        to write concisely.
+        """
+        return self.client.iter_all_for_course(
+            course_key=self._course(course),
+            block_type=block_type,
             scope=self.scope,
         )
 
@@ -450,6 +479,78 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
             ]
         )
 
+    def test_iter_course_empty(self):
+        self.assertItemsEqual(
+            self.iter_all_for_course(course=0),
+            []
+        )
+
+    def test_iter_course_single_user(self):
+        self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1001: {'c': 'd'}})
+
+        self.assertItemsEqual(
+            (item.state for item in self.iter_all_for_course(course=0)),
+            [{'a': 'b'}]
+        )
+
+        self.assertItemsEqual(
+            (item.state for item in self.iter_all_for_course(course=1)),
+            [{'c': 'd'}]
+        )
+
+    def test_iter_course_many_users(self):
+        for user in xrange(2):
+            for course in xrange(2):
+                self.set_many(
+                    user,
+                    block_to_state={
+                        course * 1000 + 0: {'course': course},
+                        course * 1000 + 1: {'user': user}
+                    }
+                )
+
+        self.assertItemsEqual(
+            ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
+            [
+                (self._user(0), self._block(1000), {'course': 1}),
+                (self._user(0), self._block(1001), {'user': 0}),
+                (self._user(1), self._block(1000), {'course': 1}),
+                (self._user(1), self._block(1001), {'user': 1}),
+            ]
+        )
+
+    def test_iter_course_deleted_block(self):
+        for user in xrange(2):
+            for course in xrange(2):
+                self.set_many(
+                    user,
+                    block_to_state={
+                        course * 1000 + 0: {'course': user},
+                        course * 1000 + 1: {'user': user}
+                    }
+                )
+
+        self.delete(user=1, block=0)
+        self.delete(user=1, block=1001)
+
+        self.assertItemsEqual(
+            ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=0)),
+            [
+                (self._user(0), self._block(0), {'course': 0}),
+                (self._user(0), self._block(1), {'user': 0}),
+                (self._user(1), self._block(1), {'user': 1}),
+            ]
+        )
+
+        self.assertItemsEqual(
+            ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
+            [
+                (self._user(0), self._block(1000), {'course': 0}),
+                (self._user(0), self._block(1001), {'user': 0}),
+                (self._user(1), self._block(1000), {'course': 1}),
+            ]
+        )
+
 
 class UserStateClientTestBase(_UserStateClientTestCRUD,
                               _UserStateClientTestHistory,
@@ -566,7 +667,17 @@ class DictUserStateClient(XBlockUserStateClient):
         increments. If you're using this method, you should be running in an
         async task.
         """
-        raise NotImplementedError()
+        for (_, key, scope), entries in self._history.iteritems():
+            if entries[0].state is None:
+                continue
+
+            if (
+                    key.course_key == course_key and
+                    scope == scope and
+                    (block_type is None or key.block_type == block_type)
+            ):
+
+                yield entries[0]
 
 
 class TestDictUserStateClient(UserStateClientTestBase):
