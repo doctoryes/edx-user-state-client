@@ -49,9 +49,14 @@ class _UserStateClientTestUtils(TestCase):
         course = block // 1000
         return BlockUsageLocator(
             self._course(course),
-            'block_type',
+            self._block_type(block),
             'block{}'.format(block)
         )
+
+    @contract(block=int)
+    def _block_type(self, block):  # pylint: disable=unused-argument
+        """Return the block type for the specified ``block_idx``."""
+        return 'block_type'
 
     @contract(course=int)
     def _course(self, course):
