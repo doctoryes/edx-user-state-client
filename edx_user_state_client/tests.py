@@ -362,7 +362,7 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
 
     def test_empty_history(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get_history(user=0, block=0)
+            next(self.get_history(user=0, block=0))
 
     def test_single_history(self):
         self.set(user=0, block=0, state={'a': 'b'})
@@ -651,7 +651,8 @@ class DictUserStateClient(XBlockUserStateClient):
         if (username, block_key, scope) not in self._history:
             raise self.DoesNotExist(username, block_key, scope)
 
-        return iter(self._history[(username, block_key, scope)])
+        for entry in self._history[(username, block_key, scope)]:
+            yield entry
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
         """
