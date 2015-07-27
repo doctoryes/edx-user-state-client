@@ -7,23 +7,33 @@ from collections import namedtuple
 
 from contracts import contract, new_contract, ContractsMeta
 from datetime import datetime
-from opaque_keys.edx.keys import UsageKey
+from opaque_keys.edx.keys import UsageKey, DefinitionKey
 from xblock.fields import Scope, ScopeBase
 
 new_contract('UsageKey', UsageKey)
+new_contract('DefinitionKey', DefinitionKey)
 new_contract('basestring', basestring)
 new_contract('datetime', datetime)
+new_contract('block_key', 'UsageKey|DefinitionKey|str|NoneType')
 
 
-class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', 'state', 'updated'])):
+class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', 'state', 'updated', 'scope'])):
     """
     The current state of a single XBlock.
 
     Arguments:
         username: The username of the user that stored this state.
-        block_key: The :class:`UsageKey` of the XBlock.
+        block_key: The key identifying the scoped state. Depending on the :class:`~xblock.fields.BlockScope` of
+
+                  ``scope``, this may take one of several types:
+
+                      * ``USAGE``: :class:`~opaque_keys.edx.keys.UsageKey`
+                      * ``DEFINITION``: :class:`~opaque_keys.edx.keys.DefinitionKey`
+                      * ``TYPE``: :class:`str`
+                      * ``ALL``: ``None``
         state: A dict mapping field names to the values of those fields for this XBlock.
         updated: A :class:`datetime.datetime` that identifies when this state was stored.
+        scope: A :class:`xblock.fields.Scope` identifying which XBlock scope this state is coming from.
     """
     __slots__ = ()
 
@@ -54,14 +64,6 @@ class XBlockUserStateClient(object):
             This also implies that the client is running as a user, and whatever is
             backing it is smart enough to do authorization checks.
         3. This does not yet cover export-related functionality.
-
-    Open Questions:
-
-        1. Is it sufficient to just send the block_key in and extract course +
-        version info from it?
-        2. Do we want to use the username as the identifier? Privacy implications?
-        Ease of debugging?
-        3. Would a get_many_by_type() be useful?
     """
 
     __metaclass__ = ContractsMeta
@@ -86,7 +88,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_key=UsageKey,
+        block_key="block_key",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns=XBlockUserState,
@@ -98,12 +100,15 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be retrieved
-            block_key (UsageKey): The UsageKey identifying which xblock state to load.
+            block_key: The key identifying which xblock state to load.
             scope (Scope): The scope to load data from
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
-        Returns
+        Returns:
             XBlockUserState: The current state of the block for the specified username and block_key.
+
+        Raises:
+            DoesNotExist if no entry is found.
         """
         try:
             return next(self.get_many(username, [block_key], scope, fields=fields))
@@ -112,7 +117,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_key=UsageKey,
+        block_key="block_key",
         state="dict(basestring: *)",
         scope=ScopeBase,
         returns=None,
@@ -124,7 +129,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be retrieved
-            block_key (UsageKey): The UsageKey identifying which xblock state to load.
+            block_key: The key identifying which xblock state to load.
             state (dict): A dictionary mapping field names to values
             scope (Scope): The scope to store data to
         """
@@ -132,7 +137,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_key=UsageKey,
+        block_key="block_key",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns=None,
@@ -144,7 +149,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be deleted
-            block_key (UsageKey): The UsageKey identifying which xblock state to delete.
+            block_key: The key identifying which xblock state to delete.
             scope (Scope): The scope to delete data from
             fields: A list of fields to delete. If None, delete all stored fields.
         """
@@ -152,7 +157,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_key=UsageKey,
+        block_key="block_key",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns="dict(basestring: datetime)",
@@ -164,7 +169,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should queried
-            block_key (UsageKey): The UsageKey identifying which xblock modification dates to retrieve.
+            block_key: The key identifying which xblock modification dates to retrieve.
             scope (Scope): The scope to retrieve from.
             fields: A list of fields to query. If None, query all fields.
                 Specific implementations are free to return the same modification date
@@ -180,7 +185,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_keys="seq(UsageKey)|set(UsageKey)",
+        block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         modify_docstring=False,
@@ -192,19 +197,19 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be retrieved
-            block_keys ([UsageKey]): A list of UsageKeys identifying which xblock states to load.
+            block_keys: A list of keys identifying which xblock states to load.
             scope (Scope): The scope to load data from
             fields: A list of field values to retrieve. If None, retrieve all stored fields.
 
         Yields:
-            XBlockUserState tuples for each specified UsageKey in block_keys.
+            XBlockUserState tuples for each specified key in block_keys.
             field_state is a dict mapping field names to values.
         """
         raise NotImplementedError()
 
     @contract(
         username="basestring",
-        block_keys_to_state="dict(UsageKey: dict(basestring: *))",
+        block_keys_to_state="dict(block_key: dict(basestring: *))",
         scope=ScopeBase,
         returns=None,
         modify_docstring=False,
@@ -216,7 +221,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be retrieved
-            block_keys_to_state (dict): A dict mapping UsageKeys to state dicts.
+            block_keys_to_state (dict): A dict mapping keys to state dicts.
                 Each state dict maps field names to values. These state dicts
                 are overlaid over the stored state. To delete fields, use
                 :meth:`delete` or :meth:`delete_many`.
@@ -226,7 +231,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_keys="seq(UsageKey)|set(UsageKey)",
+        block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         returns=None,
@@ -239,7 +244,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be deleted
-            block_key (UsageKey): The UsageKey identifying which xblock state to delete.
+            block_key: The key identifying which xblock state to delete.
             scope (Scope): The scope to delete data from
             fields: A list of fields to delete. If None, delete all stored fields.
         """
@@ -247,7 +252,7 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_keys="seq(UsageKey)|set(UsageKey)",
+        block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
         modify_docstring=False,
@@ -259,7 +264,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose state should be queried
-            block_key (UsageKey): The UsageKey identifying which xblock modification dates to retrieve.
+            block_key: The key identifying which xblock modification dates to retrieve.
             scope (Scope): The scope to retrieve from.
             fields: A list of fields to query. If None, delete all stored fields.
                 Specific implementations are free to return the same modification date
@@ -279,7 +284,7 @@ class XBlockUserStateClient(object):
 
         Arguments:
             username: The name of the user whose history should be retrieved.
-            block_key (UsageKey): The UsageKey identifying which xblock history to retrieve.
+            block_key: The key identifying which xblock history to retrieve.
             scope (Scope): The scope to load data from.
 
         Yields:
