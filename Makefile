@@ -1,3 +1,5 @@
+default: test quality docs
+
 test:
 	tox
 
