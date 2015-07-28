@@ -16,11 +16,12 @@ test suite, use the snippet:
 """
 
 from datetime import datetime
-
 from unittest import TestCase
+
+from contracts import contract
 from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
-from xblock.fields import Scope
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
+from xblock.fields import Scope
 
 
 class _UserStateClientTestUtils(TestCase):
@@ -33,19 +34,22 @@ class _UserStateClientTestUtils(TestCase):
     scope = Scope.user_state
     client = None
 
-    def _user(self, user_idx):
-        """Return the username for user ``user_idx``"""
-        return "user{}".format(user_idx)
+    @contract(user=int)
+    def _user(self, user):
+        """Return the username for user ``user``"""
+        return "user{}".format(user)
 
-    def _block(self, block_idx):
-        """Return a UsageKey for the block ``block_idx``"""
+    @contract(block=int)
+    def _block(self, block):
+        """Return a UsageKey for the block ``block``"""
         return BlockUsageLocator(
             CourseLocator('org', 'course', 'run'),
             'block_type',
-            'block{}'.format(block_idx)
+            'block{}'.format(block)
         )
 
-    def get(self, user_idx, block_idx, fields=None):
+    @contract(user=int, block=int, fields="list(string)|None")
+    def get(self, user, block, fields=None):
         """
         Get the state for the specified user and block.
 
@@ -54,13 +58,14 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get(
-            self._user(user_idx),
-            self._block(block_idx),
+            self._user(user),
+            self._block(block),
             self.scope,
             fields=fields
         )
 
-    def set(self, user_idx, block_idx, state):
+    @contract(user=int, block=int, state="dict(string:*)")
+    def set(self, user, block, state):
         """
         Set the state for the specified user and block.
 
@@ -69,13 +74,14 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.set(
-            self._user(user_idx),
-            self._block(block_idx),
+            self._user(user),
+            self._block(block),
             state,
             self.scope,
         )
 
-    def delete(self, user_idx, block_idx, fields=None):
+    @contract(user=int, block=int, fields="list(string)|None")
+    def delete(self, user, block, fields=None):
         """
         Delete the state for the specified user and block.
 
@@ -84,13 +90,14 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.delete(
-            self._user(user_idx),
-            self._block(block_idx),
+            self._user(user),
+            self._block(block),
             self.scope,
             fields
         )
 
-    def get_many(self, user_idx, block_idxs, fields=None):
+    @contract(user=int, blocks="list(int)", fields="list(string)|None")
+    def get_many(self, user, blocks, fields=None):
         """
         Get the state for the specified user and blocks.
 
@@ -99,13 +106,14 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get_many(
-            self._user(user_idx),
-            [self._block(block_idx) for block_idx in block_idxs],
+            self._user(user),
+            [self._block(block) for block in blocks],
             self.scope,
             fields,
         )
 
-    def set_many(self, user_idx, block_idx_to_state):
+    @contract(user=int, block_to_state="dict(int: dict(string: *))")
+    def set_many(self, user, block_to_state):
         """
         Set the state for the specified user and blocks.
 
@@ -114,16 +122,17 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.set_many(
-            self._user(user_idx),
+            self._user(user),
             {
-                self._block(block_idx): state
-                for block_idx, state
-                in block_idx_to_state.items()
+                self._block(block): state
+                for block, state
+                in block_to_state.items()
             },
             self.scope,
         )
 
-    def delete_many(self, user_idx, block_idxs, fields=None):
+    @contract(user=int, blocks="list(int)", fields="list(string)|None")
+    def delete_many(self, user, blocks, fields=None):
         """
         Delete the state for the specified user and blocks.
 
@@ -132,13 +141,14 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.delete_many(
-            self._user(user_idx),
-            [self._block(block_idx) for block_idx in block_idxs],
+            self._user(user),
+            [self._block(block) for block in blocks],
             self.scope,
             fields,
         )
 
-    def get_history(self, user_idx, block_idx):
+    @contract(user=int, block=int)
+    def get_history(self, user, block):
         """
         Return the state history for the specified user and block.
 
@@ -147,12 +157,13 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.get_history(
-            self._user(user_idx),
-            self._block(block_idx),
+            self._user(user),
+            self._block(block),
             self.scope,
         )
 
-    def iter_all_for_block(self, block_idx):
+    @contract(block=int)
+    def iter_all_for_block(self, block):
         """
         Yield the state for all users for the specified block.
 
@@ -161,7 +172,7 @@ class _UserStateClientTestUtils(TestCase):
         to write concisely.
         """
         return self.client.iter_all_for_block(
-            self._block(block_idx),
+            self._block(block),
             self.scope,
         )
 
@@ -174,65 +185,65 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
     __test__ = False
 
     def test_set_get(self):
-        self.set(0, 0, {'a': 'b'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
 
     def test_set_get_get(self):
-        self.set(0, 0, {'a': 'b'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
 
     def test_set_set_get(self):
-        self.set(0, 0, {'a': 'b'})
-        self.set(0, 0, {'a': 'c'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'c'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'c'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'c'})
 
     def test_set_overlay(self):
-        self.set(0, 0, {'a': 'b'})
-        self.set(0, 0, {'b': 'c'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b', 'b': 'c'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.set(user=0, block=0, state={'b': 'c'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b', 'b': 'c'})
 
     def test_get_fields(self):
-        self.set(0, 0, {'a': 'b', 'b': 'c'})
-        self.assertEquals(self.get(0, 0, ['a']).state, {'a': 'b'})
-        self.assertEquals(self.get(0, 0, ['b']).state, {'b': 'c'})
-        self.assertEquals(self.get(0, 0, ['a', 'b']).state, {'a': 'b', 'b': 'c'})
+        self.set(user=0, block=0, state={'a': 'b', 'b': 'c'})
+        self.assertEquals(self.get(user=0, block=0, fields=['a']).state, {'a': 'b'})
+        self.assertEquals(self.get(user=0, block=0, fields=['b']).state, {'b': 'c'})
+        self.assertEquals(self.get(user=0, block=0, fields=['a', 'b']).state, {'a': 'b', 'b': 'c'})
 
     def test_get_missing_block(self):
-        self.set(0, 1, {})
+        self.set(user=0, block=1, state={})
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
     def test_get_missing_user(self):
-        self.set(1, 0, {})
+        self.set(user=1, block=0, state={})
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
     def test_get_missing_field(self):
-        self.set(0, 0, {'a': 'b'})
-        self.assertEquals(self.get(0, 0, ['a', 'b']).state, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.assertEquals(self.get(user=0, block=0, fields=['a', 'b']).state, {'a': 'b'})
 
     def test_set_two_users(self):
-        self.set(0, 0, {'a': 'b'})
-        self.set(1, 0, {'b': 'c'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
-        self.assertEquals(self.get(1, 0).state, {'b': 'c'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.set(user=1, block=0, state={'b': 'c'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
+        self.assertEquals(self.get(user=1, block=0).state, {'b': 'c'})
 
     def test_set_two_blocks(self):
-        self.set(0, 0, {'a': 'b'})
-        self.set(0, 1, {'b': 'c'})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
-        self.assertEquals(self.get(0, 1).state, {'b': 'c'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.set(user=0, block=1, state={'b': 'c'})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
+        self.assertEquals(self.get(user=0, block=1).state, {'b': 'c'})
 
     def test_set_many(self):
-        self.set_many(0, {0: {'a': 'b'}, 1: {'b': 'c'}})
-        self.assertEquals(self.get(0, 0).state, {'a': 'b'})
-        self.assertEquals(self.get(0, 1).state, {'b': 'c'})
+        self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
+        self.assertEquals(self.get(user=0, block=0).state, {'a': 'b'})
+        self.assertEquals(self.get(user=0, block=1).state, {'b': 'c'})
 
     def test_get_many(self):
-        self.set_many(0, {0: {'a': 'b'}, 1: {'b': 'c'}})
+        self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
         self.assertItemsEqual(
-            [entry._replace(updated=None) for entry in self.get_many(0, [0, 1])],
+            [entry._replace(updated=None) for entry in self.get_many(user=0, blocks=[0, 1])],
             [
                 XBlockUserState(self._user(0), self._block(0), {'a': 'b'}, None),
                 XBlockUserState(self._user(0), self._block(1), {'b': 'c'}, None)
@@ -241,71 +252,71 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
     def test_delete(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
-        self.set(0, 0, {'a': 'b'})
-        self.assertEqual(self.get(0, 0).state, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.assertEqual(self.get(user=0, block=0).state, {'a': 'b'})
 
-        self.delete(0, 0)
+        self.delete(user=0, block=0)
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
     def test_delete_partial(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
-        self.set(0, 0, {'a': 'b', 'b': 'c'})
-        self.assertEqual(self.get(0, 0).state, {'a': 'b', 'b': 'c'})
+        self.set(user=0, block=0, state={'a': 'b', 'b': 'c'})
+        self.assertEqual(self.get(user=0, block=0).state, {'a': 'b', 'b': 'c'})
 
-        self.delete(0, 0, ['a'])
-        self.assertEqual(self.get(0, 0).state, {'b': 'c'})
+        self.delete(user=0, block=0, fields=['a'])
+        self.assertEqual(self.get(user=0, block=0).state, {'b': 'c'})
 
     def test_delete_last_field(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
-        self.set(0, 0, {'a': 'b'})
-        self.assertEqual(self.get(0, 0).state, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
+        self.assertEqual(self.get(user=0, block=0).state, {'a': 'b'})
 
-        self.delete(0, 0, ['a'])
+        self.delete(user=0, block=0, fields=['a'])
         with self.assertRaises(self.client.DoesNotExist):
-            self.get(0, 0)
+            self.get(user=0, block=0)
 
     def test_delete_many(self):
-        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
-        self.set_many(0, {
+        self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
             1: {'b': 'c'},
         })
 
-        self.delete_many(0, [0, 1])
-        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+        self.delete_many(user=0, blocks=[0, 1])
+        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
     def test_delete_many_partial(self):
-        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
-        self.set_many(0, {
+        self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
             1: {'b': 'c'},
         })
 
-        self.delete_many(0, [0, 1], ['a'])
+        self.delete_many(user=0, blocks=[0, 1], fields=['a'])
         self.assertItemsEqual(
-            [(entry.block_key, entry.state) for entry in self.get_many(0, [0, 1])],
+            [(entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [(self._block(1), {'b': 'c'})]
         )
 
     def test_delete_many_last_field(self):
-        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
-        self.set_many(0, {
+        self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
             1: {'b': 'c'},
         })
 
-        self.delete_many(0, [0, 1], ['a', 'b'])
-        self.assertItemsEqual(self.get_many(0, [0, 1]), [])
+        self.delete_many(user=0, blocks=[0, 1], fields=['a', 'b'])
+        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
 
 class _UserStateClientTestHistory(_UserStateClientTestUtils):
@@ -317,20 +328,20 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
 
     def test_empty_history(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get_history(0, 0)
+            self.get_history(user=0, block=0)
 
     def test_single_history(self):
-        self.set(0, 0, {'a': 'b'})
+        self.set(user=0, block=0, state={'a': 'b'})
         self.assertEquals(
-            [history.state for history in self.get_history(0, 0)],
+            [history.state for history in self.get_history(user=0, block=0)],
             [{'a': 'b'}]
         )
 
     def test_multiple_history_entries(self):
         for val in xrange(3):
-            self.set(0, 0, {'a': val})
+            self.set(user=0, block=0, state={'a': val})
 
-        history = list(self.get_history(0, 0))
+        history = list(self.get_history(user=0, block=0))
 
         self.assertEquals(
             [entry.state for entry in history],
@@ -346,25 +357,25 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
         )
 
     def test_history_distinct(self):
-        self.set(0, 0, {'a': 0})
-        self.set(0, 1, {'a': 1})
+        self.set(user=0, block=0, state={'a': 0})
+        self.set(user=0, block=1, state={'a': 1})
 
         self.assertEquals(
-            [history.state for history in self.get_history(0, 0)],
+            [history.state for history in self.get_history(user=0, block=0)],
             [{'a': 0}]
         )
         self.assertEquals(
-            [history.state for history in self.get_history(0, 1)],
+            [history.state for history in self.get_history(user=0, block=1)],
             [{'a': 1}]
         )
 
     def test_history_after_delete(self):
-        self.set(0, 0, {str(val): val for val in xrange(3)})
+        self.set(user=0, block=0, state={str(val): val for val in xrange(3)})
         for val in xrange(3):
-            self.delete(0, 0, [str(val)])
+            self.delete(user=0, block=0, fields=[str(val)])
 
         self.assertEquals(
-            [history.state for history in self.get_history(0, 0)],
+            [history.state for history in self.get_history(user=0, block=0)],
             [
                 None,
                 {'2': 2},
@@ -374,14 +385,14 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
         )
 
     def test_set_many_with_history(self):
-        self.set_many(0, {0: {'a': 0}, 1: {'a': 1}})
+        self.set_many(user=0, block_to_state={0: {'a': 0}, 1: {'a': 1}})
 
         self.assertEquals(
-            [history.state for history in self.get_history(0, 0)],
+            [history.state for history in self.get_history(user=0, block=0)],
             [{'a': 0}]
         )
         self.assertEquals(
-            [history.state for history in self.get_history(0, 1)],
+            [history.state for history in self.get_history(user=0, block=1)],
             [{'a': 1}]
         )
 
@@ -395,20 +406,20 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
 
     def test_iter_blocks_empty(self):
         self.assertItemsEqual(
-            self.iter_all_for_block(0),
+            self.iter_all_for_block(block=0),
             []
         )
 
     def test_iter_blocks_single_user(self):
-        self.set_many(0, {0: {'a': 'b'}, 1: {'c': 'd'}})
+        self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'c': 'd'}})
 
         self.assertItemsEqual(
-            (item.state for item in self.iter_all_for_block(0)),
+            (item.state for item in self.iter_all_for_block(block=0)),
             [{'a': 'b'}]
         )
 
         self.assertItemsEqual(
-            (item.state for item in self.iter_all_for_block(1)),
+            (item.state for item in self.iter_all_for_block(block=1)),
             [{'c': 'd'}]
         )
 
@@ -417,7 +428,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
             self.set_many(user, {0: {'a': user}, 1: {'c': user}})
 
         self.assertItemsEqual(
-            ((item.username, item.state) for item in self.iter_all_for_block(0)),
+            ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
                 (self._user(1), {'a': 1}),
@@ -429,10 +440,10 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         for user in xrange(3):
             self.set_many(user, {0: {'a': user}, 1: {'c': user}})
 
-        self.delete(1, 0)
+        self.delete(user=1, block=0)
 
         self.assertItemsEqual(
-            ((item.username, item.state) for item in self.iter_all_for_block(0)),
+            ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
                 (self._user(2), {'a': 2}),
