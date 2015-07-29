@@ -160,7 +160,7 @@ class XBlockUserStateClient(object):
         block_key="block_key",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
-        returns="dict(basestring: datetime)",
+        returns=XBlockUserState,
         modify_docstring=False,
     )
     def get_mod_date(self, username, block_key, scope=Scope.user_state, fields=None):
@@ -172,16 +172,17 @@ class XBlockUserStateClient(object):
             block_key: The key identifying which xblock modification dates to retrieve.
             scope (Scope): The scope to retrieve from.
             fields: A list of fields to query. If None, query all fields.
-                Specific implementations are free to return the same modification date
-                for all fields, if they don't store changes individually per field.
-                Implementations may omit fields for which data has not been stored.
 
-        Returns: dict of {field_name: modified_date} for each selected field.
+        Specific implementations are free to return the same modification date
+        for all fields, if they don't store changes individually per field.
+        Implementations may omit fields for which data has not been stored.
+
+        Returns: XBlockUserState instance. The updated attribute is a
+                 guarantee that none of the fields have been modified since
+                 then.
         """
         results = self.get_mod_date_many(username, [block_key], scope, fields=fields)
-        return {
-            field: date for (_, field, date) in results
-        }
+        return results.next()
 
     @contract(
         username="basestring",
@@ -266,12 +267,16 @@ class XBlockUserStateClient(object):
             username: The name of the user whose state should be queried
             block_key: The key identifying which xblock modification dates to retrieve.
             scope (Scope): The scope to retrieve from.
-            fields: A list of fields to query. If None, delete all stored fields.
-                Specific implementations are free to return the same modification date
-                for all fields, if they don't store changes individually per field.
-                Implementations may omit fields for which data has not been stored.
+            fields: A list of fields to query. If None, returns dates for all
+                    stored fields.
 
-        Yields: tuples of (block, field_name, modified_date) for each selected field.
+        Specific implementations are free to return the same modification date
+        for all fields, if they don't store changes individually per field.
+        Implementations may omit fields for which data has not been stored.
+
+        Yields: XBlockUserState instances with the requested fields for each
+                key. The updated attribute is a guarantee that none of the
+                fields have been modified since then.
         """
         raise NotImplementedError()
 
