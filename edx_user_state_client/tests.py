@@ -396,14 +396,14 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.assertLess(mod_dates.updated, end_time)
 
     def test_get_mod_date_many(self):
-        start_time = datetime.now()
         self.set_many(
             user=0,
-            block_to_state={0: {'a': 'b'}, 1: {'b': 'c', 'c': 'd'}})
+            block_to_state={0: {'a': 'b'}, 1: {'b': '_', 'c': 'd'}})
+        start_time1 = datetime.now()
         self.set_many(
             user=0,
-            block_to_state={0: {'a': 'b2'}, 1: {'b': 'c2', 'c': 'd'}})
-        end_time = datetime.now()
+            block_to_state={1: {'b': 'c', 'c': 'd', 'd': 'e'}})
+        end_time1 = datetime.now()
 
         mod_dates = list(self.get_mod_date_many(
             user=0,
@@ -416,8 +416,46 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.assertItemsEqual(
             sorted(mod_dates[0].state.keys()),
             ["b", "c"])
-        self.assertGreater(mod_dates[0].updated, start_time)
-        self.assertLess(mod_dates[0].updated, end_time)
+        self.assertGreater(mod_dates[0].updated, start_time1)
+        self.assertLess(mod_dates[0].updated, end_time1)
+
+        start_time2 = datetime.now()
+        self.set_many(
+            user=0,
+            block_to_state={1: {'a': 'new', 'b': 'c2', 'c': 'd'}})
+        end_time2 = datetime.now()
+
+        mod_dates = list(self.get_mod_date_many(
+            user=0,
+            blocks=[0, 1],
+            fields=["b", "c"]))
+
+        self.assertItemsEqual(
+            [result.block_key for result in mod_dates],
+            [self._block(1)])
+        self.assertItemsEqual(
+            sorted(mod_dates[0].state.keys()),
+            ["b", "c"])
+        self.assertGreater(mod_dates[0].updated, start_time2)
+        self.assertLess(mod_dates[0].updated, end_time2)
+
+        mod_dates = list(self.get_mod_date_many(
+            user=0,
+            blocks=[0, 1],
+            fields=["a"]))
+
+        self.assertItemsEqual(
+            [result.block_key for result in mod_dates],
+            [self._block(0), self._block(1)])
+        self.assertItemsEqual(
+            mod_dates[0].state.keys(),
+            ["a"])
+        self.assertLess(mod_dates[0].updated, start_time1)
+        self.assertItemsEqual(
+            mod_dates[1].state.keys(),
+            ["a"])
+        self.assertGreater(mod_dates[1].updated, start_time2)
+        self.assertLess(mod_dates[1].updated, end_time2)
 
 
 class _UserStateClientTestHistory(_UserStateClientTestUtils):
