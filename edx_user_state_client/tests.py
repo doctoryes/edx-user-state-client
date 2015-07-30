@@ -368,7 +368,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         start_time = datetime.now(pytz.utc)
         self.set_many(
             user=0,
-            block_to_state={0: {'a': 'b'}})
+            block_to_state={0: {'a': 'b'}, 1: {'a': 'd'}})
         mid_time = datetime.now(pytz.utc)
         self.set_many(
             user=0,
