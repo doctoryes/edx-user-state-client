@@ -34,7 +34,7 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
         state: A dict mapping field names to the values of those fields for this XBlock.
         updated: A :class:`datetime.datetime`. We guarantee that the fields
                  that were returned in "state" have not been changed since
-                 this time.
+                 this time (in UTC).
         scope: A :class:`xblock.fields.Scope` identifying which XBlock scope this state is coming from.
     """
     __slots__ = ()
