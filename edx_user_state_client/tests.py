@@ -40,22 +40,27 @@ class _UserStateClientTestUtils(TestCase):
 
     @contract(user=int)
     def _user(self, user):
-        """Return the username for user ``user``"""
+        """Return the username for user ``user``."""
         return "user{}".format(user)
 
     @contract(block=int)
     def _block(self, block):
-        """Return a UsageKey for the block ``block``"""
+        """Return a UsageKey for the block ``block``."""
         course = block // 1000
         return BlockUsageLocator(
             self._course(course),
-            'block_type',
+            self._block_type(block),
             'block{}'.format(block)
         )
 
+    @contract(block=int)
+    def _block_type(self, block):  # pylint: disable=unused-argument
+        """Return the block type for the specified ``block``."""
+        return 'block_type'
+
     @contract(course=int)
     def _course(self, course):
-        """Return a CourseKey for the course ``course_idx``"""
+        """Return a CourseKey for the course ``course``"""
         return CourseLocator(
             'org{}'.format(course),
             'course{}'.format(course),
@@ -272,10 +277,10 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
     def test_get_many(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
         self.assertItemsEqual(
-            [entry._replace(updated=None) for entry in self.get_many(user=0, blocks=[0, 1])],
+            [(entry.username, entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [
-                XBlockUserState(self._user(0), self._block(0), {'a': 'b'}, None),
-                XBlockUserState(self._user(0), self._block(1), {'b': 'c'}, None)
+                (self._user(0), self._block(0), {'a': 'b'}),
+                (self._user(0), self._block(1), {'b': 'c'})
             ]
         )
 
@@ -357,7 +362,7 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
 
     def test_empty_history(self):
         with self.assertRaises(self.client.DoesNotExist):
-            self.get_history(user=0, block=0)
+            next(self.get_history(user=0, block=0))
 
     def test_single_history(self):
         self.set(user=0, block=0, state={'a': 'b'})
@@ -575,7 +580,7 @@ class DictUserStateClient(XBlockUserStateClient):
         Add the specified state to the state history of this block.
         """
         history_list = self._history.setdefault((username, block_key, scope), [])
-        history_list.insert(0, XBlockUserState(username, block_key, state, datetime.now()))
+        history_list.insert(0, XBlockUserState(username, block_key, state, datetime.now(), scope))
 
     def get_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         for key in block_keys:
@@ -646,7 +651,8 @@ class DictUserStateClient(XBlockUserStateClient):
         if (username, block_key, scope) not in self._history:
             raise self.DoesNotExist(username, block_key, scope)
 
-        return iter(self._history[(username, block_key, scope)])
+        for entry in self._history[(username, block_key, scope)]:
+            yield entry
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
         """
