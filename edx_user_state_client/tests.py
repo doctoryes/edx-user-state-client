@@ -210,38 +210,6 @@ class _UserStateClientTestUtils(TestCase):
             scope=self.scope,
         )
 
-    @contract(user=int, block="int", fields="list(string)|None")
-    def get_mod_date(self, user, block, fields=None):
-        """
-        Get the modification dates for the fields for the specified block.
-
-        This wraps :meth:`~XBlockUserStateClient.get_mod_date`
-        to take indexes rather than actual values, to make tests easier
-        to write concisely.
-        """
-        return self.client.get_mod_date(
-            username=self._user(user),
-            block_key=self._block(block),
-            scope=self.scope,
-            fields=fields,
-        )
-
-    @contract(user=int, blocks="list(int)", fields="list(string)|None")
-    def get_mod_date_many(self, user, blocks, fields=None):
-        """
-        Get the modification times for the specified user, blocks, and fields.
-
-        This wraps :meth:`~XBlockUserStateClient.get_mod_date_many`
-        to take indexes rather than actual values to make tests easier
-        to write concisely.
-        """
-        return self.client.get_mod_date_many(
-            username=self._user(user),
-            block_keys=[self._block(block) for block in blocks],
-            scope=self.scope,
-            fields=fields,
-        )
-
 
 class _UserStateClientTestCRUD(_UserStateClientTestUtils):
     """
@@ -389,57 +357,24 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
         end_time = datetime.now()
 
-        mod_dates = self.get_mod_date(user=0, block=0)
+        mod_dates = self.get(user=0, block=0)
 
         self.assertItemsEqual(mod_dates.state.keys(), ["a"])
         self.assertGreater(mod_dates.updated, start_time)
         self.assertLess(mod_dates.updated, end_time)
 
-    def test_get_mod_date_many(self):
+    def test_get_many_mod_date(self):
+        start_time = datetime.now()
         self.set_many(
             user=0,
-            block_to_state={0: {'a': 'b'}, 1: {'b': '_', 'c': 'd'}})
-        start_time1 = datetime.now()
+            block_to_state={0: {'a': 'b'}})
+        mid_time = datetime.now()
         self.set_many(
             user=0,
-            block_to_state={1: {'b': 'c', 'c': 'd', 'd': 'e'}})
-        end_time1 = datetime.now()
+            block_to_state={1: {'a': 'c'}})
+        end_time = datetime.now()
 
-        mod_dates = list(self.get_mod_date_many(
-            user=0,
-            blocks=[0, 1],
-            fields=["b", "c"]))
-
-        self.assertItemsEqual(
-            [result.block_key for result in mod_dates],
-            [self._block(1)])
-        self.assertItemsEqual(
-            sorted(mod_dates[0].state.keys()),
-            ["b", "c"])
-        self.assertGreater(mod_dates[0].updated, start_time1)
-        self.assertLess(mod_dates[0].updated, end_time1)
-
-        start_time2 = datetime.now()
-        self.set_many(
-            user=0,
-            block_to_state={1: {'a': 'new', 'b': 'c2', 'c': 'd'}})
-        end_time2 = datetime.now()
-
-        mod_dates = list(self.get_mod_date_many(
-            user=0,
-            blocks=[0, 1],
-            fields=["b", "c"]))
-
-        self.assertItemsEqual(
-            [result.block_key for result in mod_dates],
-            [self._block(1)])
-        self.assertItemsEqual(
-            sorted(mod_dates[0].state.keys()),
-            ["b", "c"])
-        self.assertGreater(mod_dates[0].updated, start_time2)
-        self.assertLess(mod_dates[0].updated, end_time2)
-
-        mod_dates = list(self.get_mod_date_many(
+        mod_dates = list(self.get_many(
             user=0,
             blocks=[0, 1],
             fields=["a"]))
@@ -450,12 +385,13 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.assertItemsEqual(
             mod_dates[0].state.keys(),
             ["a"])
-        self.assertLess(mod_dates[0].updated, start_time1)
+        self.assertGreater(mod_dates[0].updated, start_time)
+        self.assertLess(mod_dates[0].updated, mid_time)
         self.assertItemsEqual(
             mod_dates[1].state.keys(),
             ["a"])
-        self.assertGreater(mod_dates[1].updated, start_time2)
-        self.assertLess(mod_dates[1].updated, end_time2)
+        self.assertGreater(mod_dates[1].updated, mid_time)
+        self.assertLess(mod_dates[1].updated, end_time)
 
 
 class _UserStateClientTestHistory(_UserStateClientTestUtils):
@@ -733,33 +669,6 @@ class DictUserStateClient(XBlockUserStateClient):
                     self._add_state(username, key, scope, None)
                 else:
                     self._add_state(username, key, scope, state)
-
-    def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
-        for key in block_keys:
-            if (username, key, scope) not in self._history:
-                continue
-
-            entry = self._history[(username, key, scope)][0]
-
-            if entry.state is None:
-                continue
-
-            if fields is None:
-                current_fields = entry.state.keys()
-            else:
-                current_fields = fields
-
-            filtered_state = {
-                field: entry.state[field]
-                for field in current_fields
-                if field in entry.state
-            }
-            if len(filtered_state) > 0:
-                yield XBlockUserState(username,
-                                      key,
-                                      filtered_state,
-                                      entry.updated,
-                                      entry.scope)
 
     def get_history(self, username, block_key, scope=Scope.user_state):
         """
