@@ -17,6 +17,7 @@ test suite, use the snippet:
 
 from datetime import datetime
 from unittest import TestCase
+import pytz
 
 from contracts import contract
 from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
@@ -352,6 +353,47 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         self.delete_many(user=0, blocks=[0, 1], fields=['a', 'b'])
         self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
+    def test_get_mod_date(self):
+        start_time = datetime.now(pytz.utc)
+        self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
+        end_time = datetime.now(pytz.utc)
+
+        mod_dates = self.get(user=0, block=0)
+
+        self.assertItemsEqual(mod_dates.state.keys(), ["a"])
+        self.assertGreater(mod_dates.updated, start_time)
+        self.assertLess(mod_dates.updated, end_time)
+
+    def test_get_many_mod_date(self):
+        start_time = datetime.now(pytz.utc)
+        self.set_many(
+            user=0,
+            block_to_state={0: {'a': 'b'}, 1: {'a': 'd'}})
+        mid_time = datetime.now(pytz.utc)
+        self.set_many(
+            user=0,
+            block_to_state={1: {'a': 'c'}})
+        end_time = datetime.now(pytz.utc)
+
+        mod_dates = list(self.get_many(
+            user=0,
+            blocks=[0, 1],
+            fields=["a"]))
+
+        self.assertItemsEqual(
+            [result.block_key for result in mod_dates],
+            [self._block(0), self._block(1)])
+        self.assertItemsEqual(
+            mod_dates[0].state.keys(),
+            ["a"])
+        self.assertGreater(mod_dates[0].updated, start_time)
+        self.assertLess(mod_dates[0].updated, mid_time)
+        self.assertItemsEqual(
+            mod_dates[1].state.keys(),
+            ["a"])
+        self.assertGreater(mod_dates[1].updated, mid_time)
+        self.assertLess(mod_dates[1].updated, end_time)
+
 
 class _UserStateClientTestHistory(_UserStateClientTestUtils):
     """
@@ -580,7 +622,7 @@ class DictUserStateClient(XBlockUserStateClient):
         Add the specified state to the state history of this block.
         """
         history_list = self._history.setdefault((username, block_key, scope), [])
-        history_list.insert(0, XBlockUserState(username, block_key, state, datetime.now(), scope))
+        history_list.insert(0, XBlockUserState(username, block_key, state, datetime.now(pytz.utc), scope))
 
     def get_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         for key in block_keys:
@@ -628,9 +670,6 @@ class DictUserStateClient(XBlockUserStateClient):
                     self._add_state(username, key, scope, None)
                 else:
                     self._add_state(username, key, scope, state)
-
-    def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
-        raise NotImplementedError()
 
     def get_history(self, username, block_key, scope=Scope.user_state):
         """

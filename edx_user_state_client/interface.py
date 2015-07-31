@@ -32,7 +32,9 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
                       * ``TYPE``: :class:`str`
                       * ``ALL``: ``None``
         state: A dict mapping field names to the values of those fields for this XBlock.
-        updated: A :class:`datetime.datetime` that identifies when this state was stored.
+        updated: A :class:`datetime.datetime`. We guarantee that the fields
+                 that were returned in "state" have not been changed since
+                 this time (in UTC).
         scope: A :class:`xblock.fields.Scope` identifying which XBlock scope this state is coming from.
     """
     __slots__ = ()
@@ -157,34 +159,6 @@ class XBlockUserStateClient(object):
 
     @contract(
         username="basestring",
-        block_key="block_key",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        returns="dict(basestring: datetime)",
-        modify_docstring=False,
-    )
-    def get_mod_date(self, username, block_key, scope=Scope.user_state, fields=None):
-        """
-        Get the last modification date for fields from the specified blocks.
-
-        Arguments:
-            username: The name of the user whose state should queried
-            block_key: The key identifying which xblock modification dates to retrieve.
-            scope (Scope): The scope to retrieve from.
-            fields: A list of fields to query. If None, query all fields.
-                Specific implementations are free to return the same modification date
-                for all fields, if they don't store changes individually per field.
-                Implementations may omit fields for which data has not been stored.
-
-        Returns: dict of {field_name: modified_date} for each selected field.
-        """
-        results = self.get_mod_date_many(username, [block_key], scope, fields=fields)
-        return {
-            field: date for (_, field, date) in results
-        }
-
-    @contract(
-        username="basestring",
         block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
         fields="seq(basestring)|set(basestring)|None",
@@ -247,31 +221,6 @@ class XBlockUserStateClient(object):
             block_key: The key identifying which xblock state to delete.
             scope (Scope): The scope to delete data from
             fields: A list of fields to delete. If None, delete all stored fields.
-        """
-        raise NotImplementedError()
-
-    @contract(
-        username="basestring",
-        block_keys="seq(block_key)|set(block_key)",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        modify_docstring=False,
-    )
-    @abstractmethod
-    def get_mod_date_many(self, username, block_keys, scope=Scope.user_state, fields=None):
-        """
-        Get the last modification date for fields from the specified blocks.
-
-        Arguments:
-            username: The name of the user whose state should be queried
-            block_key: The key identifying which xblock modification dates to retrieve.
-            scope (Scope): The scope to retrieve from.
-            fields: A list of fields to query. If None, delete all stored fields.
-                Specific implementations are free to return the same modification date
-                for all fields, if they don't store changes individually per field.
-                Implementations may omit fields for which data has not been stored.
-
-        Yields: tuples of (block, field_name, modified_date) for each selected field.
         """
         raise NotImplementedError()
 
