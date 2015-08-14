@@ -1,10 +1,24 @@
+"""
+Django models supporting storing XBlock User state in a relational
+database.
+
+StudentModule:
+    Stores user state as serialized json in a one-row-per-user-per-block
+    format.
+
+StudentModuleHistory:
+    Records changes to user state records.
+"""
+
 import itertools
 
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import post_save
-from django.dispatch import receiver, Signal
-from opaque_keys.edx.keys import CourseKey, UsageKey, BlockTypeKey
+from django.dispatch import receiver
+from opaque_keys.edx.keys import CourseKey, UsageKey
 
 
 def _strip_object(key):
@@ -170,7 +184,7 @@ class StudentModule(models.Model):
                     ('chapter', 'Section'),
                     ('sequential', 'Subsection'),
                     ('library_content', 'Library Content'))
-    ## These three are the key for the object
+    # These three are the key for the object
     module_type = models.CharField(max_length=32, choices=MODULE_TYPES, default='problem', db_index=True)
 
     # Key used to share state. This is the XBlock usage_id

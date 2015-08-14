@@ -19,6 +19,9 @@ from factory.django import DjangoModelFactory
 
 
 class UserFactory(DjangoModelFactory):
+    """
+    Factory for constructing User models for tests.
+    """
     FACTORY_FOR = User
     FACTORY_DJANGO_GET_OR_CREATE = ('email', 'username')
 

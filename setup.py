@@ -1,7 +1,7 @@
 from setuptools import setup
 
 extras_require = dict(
-    django = [
+    django=[
         'django>=1.4,<=1.5',
         'dogapi'
     ],
@@ -23,5 +23,5 @@ setup(
         "opaque-keys",
         "xblock",
     ],
-    extras_require = extras_require
+    extras_require=extras_require
 )

@@ -14,7 +14,7 @@ except ImportError:
 
 from dogapi import dog_stats_api
 from django.contrib.auth.models import User
-from xblock.fields import Scope, ScopeBase
+from xblock.fields import Scope
 from edx_user_state_client.backends.django.user_state_client.models import StudentModule, StudentModuleHistory
 from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
 
@@ -133,7 +133,7 @@ class DjangoXBlockUserStateClient(XBlockUserStateClient):
         if scope != Scope.user_state:
             raise ValueError("Only Scope.user_state is supported, not {}".format(scope))
 
-        block_count = state_length = 0
+        block_count = 0
         evt_time = time()
 
         modules = self._get_student_modules(username, block_keys)
@@ -143,7 +143,6 @@ class DjangoXBlockUserStateClient(XBlockUserStateClient):
                 continue
 
             state = json.loads(module.state)
-            state_length += len(module.state)
 
             self._ddog_histogram(evt_time, 'get_many.block_size', len(module.state))
 
