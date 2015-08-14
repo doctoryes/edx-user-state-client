@@ -7,13 +7,34 @@ from django.conf import settings
 settings.configure()
 
 from collections import defaultdict
+from datetime import datetime
 from unittest import skip
+from pytz import UTC
 
+from django.contrib.auth.models import User
 from django.test import TestCase
+
+import factory
 
 from edx_user_state_client.tests import UserStateClientTestBase
 from edx_user_state_client.backends.django.client import DjangoXBlockUserStateClient
-from courseware.tests.factories import UserFactory
+from factory.django import DjangoModelFactory
+
+
+class UserFactory(DjangoModelFactory):
+    FACTORY_FOR = User
+    FACTORY_DJANGO_GET_OR_CREATE = ('email', 'username')
+
+    username = factory.Sequence(u'user{}'.format)
+    email = factory.Sequence(u'test+user+{}@example.com'.format)
+    password = factory.PostGenerationMethodCall('set_password', 'test')
+    first_name = factory.Sequence(u'First {}'.format)
+    last_name = factory.Sequence(u'Test {}'.format)
+    is_staff = False
+    is_active = True
+    is_superuser = False
+    last_login = datetime(2012, 1, 1, tzinfo=UTC)
+    date_joined = datetime(2011, 1, 1, tzinfo=UTC)
 
 
 class TestDjangoUserStateClient(UserStateClientTestBase, TestCase):
