@@ -12,7 +12,7 @@ try:
 except ImportError:
     import json
 
-import dogstats_wrapper as dog_stats_api
+from dogapi import dog_stats_api
 from django.contrib.auth.models import User
 from xblock.fields import Scope, ScopeBase
 from courseware.models import StudentModule, StudentModuleHistory

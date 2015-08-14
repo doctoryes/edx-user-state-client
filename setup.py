@@ -1,7 +1,10 @@
 from setuptools import setup
 
 extras_require = dict(
-    django = ['django>=1.4,<=1.5'],
+    django = [
+        'django>=1.4,<=1.5',
+        'dogapi'
+    ],
 )
 
 extras_require['all'] = set().union(*extras_require.values())
