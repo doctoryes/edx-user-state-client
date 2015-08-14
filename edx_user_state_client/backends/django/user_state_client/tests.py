@@ -17,7 +17,7 @@ from django.test import TestCase
 import factory
 
 from edx_user_state_client.tests import UserStateClientTestBase
-from edx_user_state_client.backends.django.client import DjangoXBlockUserStateClient
+from edx_user_state_client.backends.django.user_state_client.client import DjangoXBlockUserStateClient
 from factory.django import DjangoModelFactory
 
 

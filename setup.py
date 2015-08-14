@@ -14,6 +14,9 @@ setup(
     version="1.0.0",
     packages=[
         "edx_user_state_client",
+        "edx_user_state_client.backends",
+        "edx_user_state_client.backends.django",
+        "edx_user_state_client.backends.django.user_state_client",
     ],
     install_requires=[
         "PyContracts",

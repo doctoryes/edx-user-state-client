@@ -15,7 +15,7 @@ except ImportError:
 from dogapi import dog_stats_api
 from django.contrib.auth.models import User
 from xblock.fields import Scope, ScopeBase
-from edx_user_state_client.backends.django.models import StudentModule, StudentModuleHistory
+from edx_user_state_client.backends.django.user_state_client.models import StudentModule, StudentModuleHistory
 from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
 
 
