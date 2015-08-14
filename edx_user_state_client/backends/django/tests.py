@@ -3,6 +3,9 @@ Black-box tests of the DjangoUserStateClient against the semantics
 defined in edx_user_state_client.
 """
 
+from django.conf import settings
+settings.configure()
+
 from collections import defaultdict
 from unittest import skip
 
