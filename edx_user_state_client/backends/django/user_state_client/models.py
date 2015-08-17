@@ -196,6 +196,8 @@ class StudentModule(models.Model):
     class Meta(object):  # pylint: disable=missing-docstring
         unique_together = (('student', 'module_state_key', 'course_id'),)
 
+        db_table = "courseware_studentmodule"
+
     # Internal state of the object
     state = models.TextField(null=True, blank=True)
 
@@ -253,6 +255,7 @@ class StudentModuleHistory(models.Model):
 
     class Meta(object):  # pylint: disable=missing-docstring
         get_latest_by = "created"
+        db_table = "courseware_studentmodulehistory"
 
     student_module = models.ForeignKey(StudentModule, db_index=True)
     version = models.CharField(max_length=255, null=True, blank=True, db_index=True)
