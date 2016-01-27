@@ -17,12 +17,13 @@ test suite, use the snippet:
 
 from datetime import datetime
 from unittest import TestCase
-import pytz
 
+import pytz
 from contracts import contract
-from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 from xblock.fields import Scope
+
+from edx_user_state_client.interface import XBlockUserStateClient, XBlockUserState
 
 
 class _UserStateClientTestUtils(TestCase):

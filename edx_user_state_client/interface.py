@@ -4,9 +4,9 @@ A baseclass for a generic client for accessing XBlock Scope.user_state field dat
 
 from abc import abstractmethod
 from collections import namedtuple
+from datetime import datetime
 
 from contracts import contract, new_contract, ContractsMeta
-from datetime import datetime
 from opaque_keys.edx.keys import UsageKey, DefinitionKey
 from xblock.fields import Scope, ScopeBase
 
