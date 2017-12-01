@@ -700,11 +700,11 @@ class DictUserStateClient(XBlockUserStateClient):
         increments. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, scope), entries in self._history.iteritems():
+        for (_, key, one_scope), entries in self._history.iteritems():
             if entries[0].state is None:
                 continue
 
-            if key == block_key and scope == scope:
+            if key == block_key and one_scope == scope:
                 yield entries[0]
 
     def iter_all_for_course(self, course_key, block_type=None, scope=Scope.user_state, batch_size=None):
@@ -713,13 +713,13 @@ class DictUserStateClient(XBlockUserStateClient):
         increments. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, scope), entries in self._history.iteritems():
+        for (_, key, one_scope), entries in self._history.iteritems():
             if entries[0].state is None:
                 continue
 
             if (
                     key.course_key == course_key and
-                    scope == scope and
+                    one_scope == scope and
                     (block_type is None or key.block_type == block_type)
             ):
 
