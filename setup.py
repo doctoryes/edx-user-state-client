@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="edx_user_state_client",
-    version="1.0.2",
+    version="1.0.3",
     packages=[
         "edx_user_state_client",
     ],
