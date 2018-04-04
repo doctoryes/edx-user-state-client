@@ -242,18 +242,16 @@ class XBlockUserStateClient(object):
         """
         raise NotImplementedError()
 
-    def iter_all_for_block(self, block_key, scope=Scope.user_state, batch_size=None):
+    def iter_all_for_block(self, block_key, scope=Scope.user_state):
         """
-        You get no ordering guarantees. Fetching will happen in batch_size
-        increments. If you're using this method, you should be running in an
+        You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
         raise NotImplementedError()
 
-    def iter_all_for_course(self, course_key, block_type=None, scope=Scope.user_state, batch_size=None):
+    def iter_all_for_course(self, course_key, block_type=None, scope=Scope.user_state):
         """
-        You get no ordering guarantees. Fetching will happen in batch_size
-        increments. If you're using this method, you should be running in an
+        You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
         raise NotImplementedError()
