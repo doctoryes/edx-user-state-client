@@ -2,13 +2,16 @@ language: python
 matrix:
   include:
     - python: 2.7
+      env: TOXENV=py27
     - python: 3.6
+      env: TOXENV=py27
     - python: 3.7
+      env: TOXENV=py37
       dist: xenial  # required for Python >= 3.7 (travis-ci/travis-ci#9069)
 install:
   - pip install coveralls
   - pip install -r requirements.txt
-script: tox
+script: make
 after_success: coveralls
 deploy:
   provider: pypi
