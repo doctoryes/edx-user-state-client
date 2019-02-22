@@ -278,7 +278,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
     def test_get_many(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             [(entry.username, entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [
                 (self._user(0), self._block(0), {'a': 'b'}),
@@ -319,7 +319,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
             self.get(user=0, block=0)
 
     def test_delete_many(self):
-        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -327,10 +327,10 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1])
-        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
     def test_delete_many_partial(self):
-        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -338,13 +338,13 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1], fields=['a'])
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             [(entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [(self._block(1), {'b': 'c'})]
         )
 
     def test_delete_many_last_field(self):
-        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -352,7 +352,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1], fields=['a', 'b'])
-        self.assertItemsEqual(self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountsEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
     def test_get_mod_date(self):
         start_time = datetime.now(pytz.utc)
@@ -361,7 +361,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
         mod_dates = self.get(user=0, block=0)
 
-        self.assertItemsEqual(mod_dates.state.keys(), ["a"])
+        self.assertCountsEqual(mod_dates.state.keys(), ["a"])
         self.assertGreater(mod_dates.updated, start_time)
         self.assertLess(mod_dates.updated, end_time)
 
@@ -381,15 +381,15 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
             blocks=[0, 1],
             fields=["a"]))
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             [result.block_key for result in mod_dates],
             [self._block(0), self._block(1)])
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             mod_dates[0].state.keys(),
             ["a"])
         self.assertGreater(mod_dates[0].updated, start_time)
         self.assertLess(mod_dates[0].updated, mid_time)
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             mod_dates[1].state.keys(),
             ["a"])
         self.assertGreater(mod_dates[1].updated, mid_time)
@@ -415,7 +415,7 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
         )
 
     def test_multiple_history_entries(self):
-        for val in xrange(3):
+        for val in range(3):
             self.set(user=0, block=0, state={'a': val})
 
         history = list(self.get_history(user=0, block=0))
@@ -447,8 +447,8 @@ class _UserStateClientTestHistory(_UserStateClientTestUtils):
         )
 
     def test_history_after_delete(self):
-        self.set(user=0, block=0, state={str(val): val for val in xrange(3)})
-        for val in xrange(3):
+        self.set(user=0, block=0, state={str(val): val for val in range(3)})
+        for val in range(3):
             self.delete(user=0, block=0, fields=[str(val)])
 
         self.assertEquals(
@@ -482,7 +482,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     __test__ = False
 
     def test_iter_blocks_empty(self):
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             self.iter_all_for_block(block=0),
             []
         )
@@ -490,21 +490,21 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     def test_iter_blocks_single_user(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'c': 'd'}})
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             (item.state for item in self.iter_all_for_block(block=0)),
             [{'a': 'b'}]
         )
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             (item.state for item in self.iter_all_for_block(block=1)),
             [{'c': 'd'}]
         )
 
     def test_iter_blocks_many_users(self):
-        for user in xrange(3):
+        for user in range(3):
             self.set_many(user, {0: {'a': user}, 1: {'c': user}})
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
@@ -514,12 +514,12 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         )
 
     def test_iter_blocks_deleted_block(self):
-        for user in xrange(3):
+        for user in range(3):
             self.set_many(user, {0: {'a': user}, 1: {'c': user}})
 
         self.delete(user=1, block=0)
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
@@ -528,7 +528,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         )
 
     def test_iter_course_empty(self):
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             self.iter_all_for_course(course=0),
             []
         )
@@ -536,19 +536,19 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     def test_iter_course_single_user(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1001: {'c': 'd'}})
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             (item.state for item in self.iter_all_for_course(course=0)),
             [{'a': 'b'}]
         )
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             (item.state for item in self.iter_all_for_course(course=1)),
             [{'c': 'd'}]
         )
 
     def test_iter_course_many_users(self):
-        for user in xrange(2):
-            for course in xrange(2):
+        for user in range(2):
+            for course in range(2):
                 self.set_many(
                     user,
                     block_to_state={
@@ -557,7 +557,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
                     }
                 )
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
             [
                 (self._user(0), self._block(1000), {'course': 1}),
@@ -568,8 +568,8 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         )
 
     def test_iter_course_deleted_block(self):
-        for user in xrange(2):
-            for course in xrange(2):
+        for user in range(2):
+            for course in range(2):
                 self.set_many(
                     user,
                     block_to_state={
@@ -581,7 +581,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         self.delete(user=1, block=0)
         self.delete(user=1, block=1001)
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=0)),
             [
                 (self._user(0), self._block(0), {'course': 0}),
@@ -590,7 +590,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
             ]
         )
 
-        self.assertItemsEqual(
+        self.assertCountsEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
             [
                 (self._user(0), self._block(1000), {'course': 0}),
