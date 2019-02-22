@@ -6,15 +6,18 @@ from abc import abstractmethod
 from collections import namedtuple
 from datetime import datetime
 
-from six import string_types
-
 from contracts import contract, new_contract, ContractsMeta
 from opaque_keys.edx.keys import UsageKey, DefinitionKey
 from xblock.fields import Scope, ScopeBase
 
+try:
+    basestring
+except NameError:
+    basestring = str
+
 new_contract('UsageKey', UsageKey)
 new_contract('DefinitionKey', DefinitionKey)
-new_contract('string_types', string_types)
+new_contract('basestring', basestring)
 new_contract('datetime', datetime)
 new_contract('block_key', 'UsageKey|DefinitionKey|str|NoneType')
 
@@ -91,10 +94,10 @@ class XBlockUserStateClient(object):
         pass
 
     @contract(
-        username="string_types",
+        username="basestring",
         block_key="block_key",
         scope=ScopeBase,
-        fields="seq(string_types)|set(string_types)|None",
+        fields="seq(basestring)|set(basestring)|None",
         returns=XBlockUserState,
         modify_docstring=False,
     )
@@ -120,9 +123,9 @@ class XBlockUserStateClient(object):
             raise self.DoesNotExist()
 
     @contract(
-        username="string_types",
+        username="basestring",
         block_key="block_key",
-        state="dict(string_types: *)",
+        state="dict(basestring: *)",
         scope=ScopeBase,
         returns=None,
         modify_docstring=False,
@@ -140,10 +143,10 @@ class XBlockUserStateClient(object):
         self.set_many(username, {block_key: state}, scope)
 
     @contract(
-        username="string_types",
+        username="basestring",
         block_key="block_key",
         scope=ScopeBase,
-        fields="seq(string_types)|set(string_types)|None",
+        fields="seq(basestring)|set(basestring)|None",
         returns=None,
         modify_docstring=False,
     )
@@ -160,10 +163,10 @@ class XBlockUserStateClient(object):
         return self.delete_many(username, [block_key], scope, fields=fields)
 
     @contract(
-        username="string_types",
+        username="basestring",
         block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
-        fields="seq(string_types)|set(string_types)|None",
+        fields="seq(basestring)|set(basestring)|None",
         modify_docstring=False,
     )
     @abstractmethod
@@ -184,8 +187,8 @@ class XBlockUserStateClient(object):
         raise NotImplementedError()
 
     @contract(
-        username="string_types",
-        block_keys_to_state="dict(block_key: dict(string_types: *))",
+        username="basestring",
+        block_keys_to_state="dict(block_key: dict(basestring: *))",
         scope=ScopeBase,
         returns=None,
         modify_docstring=False,
@@ -206,10 +209,10 @@ class XBlockUserStateClient(object):
         raise NotImplementedError()
 
     @contract(
-        username="string_types",
+        username="basestring",
         block_keys="seq(block_key)|set(block_key)",
         scope=ScopeBase,
-        fields="seq(string_types)|set(string_types)|None",
+        fields="seq(basestring)|set(basestring)|None",
         returns=None,
         modify_docstring=False,
     )
