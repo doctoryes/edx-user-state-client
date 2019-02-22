@@ -7,7 +7,7 @@ docs:
 	cd doc && make html
 
 quality:
-	pep8
+	pycodestyle
 	pylint edx_user_state_client
 
 package:
