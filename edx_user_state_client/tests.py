@@ -699,7 +699,7 @@ class DictUserStateClient(XBlockUserStateClient):
         You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, one_scope), entries in self._history.iteritems():
+        for (_, key, one_scope), entries in self._history.items():
             if entries[0].state is None:
                 continue
 
@@ -711,7 +711,7 @@ class DictUserStateClient(XBlockUserStateClient):
         You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, one_scope), entries in self._history.iteritems():
+        for (_, key, one_scope), entries in self._history.items():
             if entries[0].state is None:
                 continue
 
