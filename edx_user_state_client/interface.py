@@ -13,7 +13,7 @@ from xblock.fields import Scope, ScopeBase
 try:
     basestring
 except NameError:
-    basestring = str
+    basestring = str  # pylint: disable=invalid-name,redefined-builtin
 
 new_contract('UsageKey', UsageKey)
 new_contract('DefinitionKey', DefinitionKey)
