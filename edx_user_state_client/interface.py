@@ -10,6 +10,11 @@ from contracts import contract, new_contract, ContractsMeta
 from opaque_keys.edx.keys import UsageKey, DefinitionKey
 from xblock.fields import Scope, ScopeBase
 
+try:
+    basestring
+except NameError:
+    basestring = str  # pylint: disable=invalid-name,redefined-builtin
+
 new_contract('UsageKey', UsageKey)
 new_contract('DefinitionKey', DefinitionKey)
 new_contract('basestring', basestring)
