@@ -53,7 +53,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'EdX User State Client'
-copyright = u'2015, Calen Pennington, John Eskew, Dave Ormsbee, Utkarsh Jadhav'
+copyright = u'2015, Calen Pennington, Julia Eskew, Dave Ormsbee, Utkarsh Jadhav'
 author = u'edX'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -229,7 +229,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'EdXUserStateClient.tex', u'EdX User State Client Documentation',
-   u'Calen Pennington, John Eskew, Dave Ormsbee, Utkarsh Jadhav', 'manual'),
+   u'Calen Pennington, Julia Eskew, Dave Ormsbee, Utkarsh Jadhav', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
