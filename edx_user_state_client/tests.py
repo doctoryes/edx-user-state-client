@@ -42,8 +42,9 @@ class _UserStateClientTestUtils(TestCase):
     scope = Scope.user_state
     client = None
 
+    @staticmethod
     @contract(user=int)
-    def _user(self, user):
+    def _user(user):
         """Return the username for user ``user``."""
         return "user{}".format(user)
 
@@ -57,13 +58,15 @@ class _UserStateClientTestUtils(TestCase):
             'block{}'.format(block)
         )
 
+    @staticmethod
     @contract(block=int)
-    def _block_type(self, block):  # pylint: disable=unused-argument
+    def _block_type(block):  # pylint: disable=unused-argument
         """Return the block type for the specified ``block``."""
         return 'block_type'
 
+    @staticmethod
     @contract(course=int)
-    def _course(self, course):
+    def _course(course):
         """Return a CourseKey for the course ``course``"""
         return CourseLocator(
             'org{}'.format(course),

@@ -1,0 +1,10 @@
+# Requirements for test runs
+-c constraints.txt
+
+-r base.txt               # Core dependencies
+
+coverage
+edx-lint
+nose
+pycodestyle
+tox
