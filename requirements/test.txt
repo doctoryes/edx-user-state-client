@@ -4,42 +4,32 @@
 #
 #    make upgrade
 #
-alabaster==0.7.12         # via -r requirements/base.txt, sphinx
 appdirs==1.4.3            # via -r requirements/base.txt, fs, virtualenv
 astroid==2.3.3            # via pylint, pylint-celery
-babel==2.8.0              # via -r requirements/base.txt, sphinx
-certifi==2020.4.5.1       # via -r requirements/base.txt, requests
-chardet==3.0.4            # via -r requirements/base.txt, requests
 click-log==0.3.2          # via edx-lint
 click==7.1.2              # via click-log, edx-lint
 coverage==5.1             # via -r requirements/test.in
 decorator==4.4.2          # via -r requirements/base.txt, pycontracts
 distlib==0.3.0            # via virtualenv
-docutils==0.16            # via -r requirements/base.txt, sphinx
 edx-lint==1.4.1           # via -r requirements/test.in
 edx-opaque-keys==2.1.0    # via -r requirements/base.txt
 filelock==3.0.12          # via tox, virtualenv
 fs==2.4.11                # via -r requirements/base.txt, xblock
 future==0.18.2            # via -r requirements/base.txt, pycontracts
-idna==2.9                 # via -r requirements/base.txt, requests
-imagesize==1.2.0          # via -r requirements/base.txt, sphinx
 importlib-metadata==1.6.0  # via importlib-resources, pluggy, tox, virtualenv
 importlib-resources==1.5.0  # via virtualenv
 isort==4.3.21             # via pylint
-jinja2==2.11.2            # via -r requirements/base.txt, sphinx
 lazy-object-proxy==1.4.3  # via astroid
 lxml==4.5.0               # via -r requirements/base.txt, xblock
-markupsafe==1.1.1         # via -r requirements/base.txt, jinja2, xblock
+markupsafe==1.1.1         # via -r requirements/base.txt, xblock
 mccabe==0.6.1             # via pylint
 nose==1.3.7               # via -r requirements/test.in
-packaging==20.3           # via -r requirements/base.txt, sphinx, tox
+packaging==20.3           # via tox
 pbr==5.4.5                # via -r requirements/base.txt, stevedore
 pluggy==0.13.1            # via tox
-pockets==0.9.1            # via -r requirements/base.txt, sphinxcontrib-napoleon
 py==1.8.1                 # via tox
 pycodestyle==2.5.0        # via -r requirements/test.in
 pycontracts==1.8.14       # via -r requirements/base.txt
-pygments==2.6.1           # via -r requirements/base.txt, sphinx
 pylint-celery==0.3        # via edx-lint
 pylint-django==2.0.11     # via edx-lint
 pylint-plugin-utils==0.6  # via pylint-celery, pylint-django
@@ -47,25 +37,14 @@ pylint==2.4.2             # via edx-lint, pylint-celery, pylint-django, pylint-p
 pymongo==3.10.1           # via -r requirements/base.txt, edx-opaque-keys
 pyparsing==2.4.7          # via -r requirements/base.txt, packaging, pycontracts
 python-dateutil==2.8.1    # via -r requirements/base.txt, xblock
-pytz==2020.1              # via -r requirements/base.txt, babel, fs, xblock
+pytz==2020.1              # via -r requirements/base.txt, fs, xblock
 pyyaml==5.3.1             # via -r requirements/base.txt, xblock
-requests==2.23.0          # via -r requirements/base.txt, sphinx
-six==1.14.0               # via -r requirements/base.txt, astroid, edx-lint, edx-opaque-keys, fs, packaging, pockets, pycontracts, python-dateutil, sphinxcontrib-napoleon, stevedore, tox, virtualenv, xblock
-snowballstemmer==2.0.0    # via -r requirements/base.txt, sphinx
-sphinx==3.0.3             # via -r requirements/base.txt
-sphinxcontrib-applehelp==1.0.2  # via -r requirements/base.txt, sphinx
-sphinxcontrib-devhelp==1.0.2  # via -r requirements/base.txt, sphinx
-sphinxcontrib-htmlhelp==1.0.3  # via -r requirements/base.txt, sphinx
-sphinxcontrib-jsmath==1.0.1  # via -r requirements/base.txt, sphinx
-sphinxcontrib-napoleon==0.7  # via -r requirements/base.txt
-sphinxcontrib-qthelp==1.0.3  # via -r requirements/base.txt, sphinx
-sphinxcontrib-serializinghtml==1.1.4  # via -r requirements/base.txt, sphinx
+six==1.14.0               # via -r requirements/base.txt, astroid, edx-lint, edx-opaque-keys, fs, packaging, pycontracts, python-dateutil, stevedore, tox, virtualenv, xblock
 stevedore==1.32.0         # via -r requirements/base.txt, edx-opaque-keys
 toml==0.10.0              # via tox
 tox==3.15.0               # via -r requirements/test.in
 typed-ast==1.4.1          # via astroid
 typing==3.7.4.1           # via -r requirements/base.txt, fs
-urllib3==1.25.9           # via -r requirements/base.txt, requests
 virtualenv==20.0.20       # via tox
 web-fragments==0.3.2      # via -r requirements/base.txt, xblock
 webob==1.8.6              # via -r requirements/base.txt, xblock

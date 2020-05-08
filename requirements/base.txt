@@ -4,45 +4,23 @@
 #
 #    make upgrade
 #
-alabaster==0.7.12         # via sphinx
 appdirs==1.4.3            # via fs
-babel==2.8.0              # via sphinx
-certifi==2020.4.5.1       # via requests
-chardet==3.0.4            # via requests
 decorator==4.4.2          # via pycontracts
-docutils==0.16            # via sphinx
 edx-opaque-keys==2.1.0    # via -r requirements/base.in
 fs==2.4.11                # via xblock
 future==0.18.2            # via pycontracts
-idna==2.9                 # via requests
-imagesize==1.2.0          # via sphinx
-jinja2==2.11.2            # via sphinx
 lxml==4.5.0               # via xblock
-markupsafe==1.1.1         # via jinja2, xblock
-packaging==20.3           # via sphinx
+markupsafe==1.1.1         # via xblock
 pbr==5.4.5                # via stevedore
-pockets==0.9.1            # via sphinxcontrib-napoleon
 pycontracts==1.8.14       # via -r requirements/base.in
-pygments==2.6.1           # via sphinx
 pymongo==3.10.1           # via edx-opaque-keys
-pyparsing==2.4.7          # via packaging, pycontracts
+pyparsing==2.4.7          # via pycontracts
 python-dateutil==2.8.1    # via xblock
-pytz==2020.1              # via babel, fs, xblock
+pytz==2020.1              # via fs, xblock
 pyyaml==5.3.1             # via xblock
-requests==2.23.0          # via sphinx
-six==1.14.0               # via edx-opaque-keys, fs, packaging, pockets, pycontracts, python-dateutil, sphinxcontrib-napoleon, stevedore, xblock
-snowballstemmer==2.0.0    # via sphinx
-sphinx==3.0.3             # via -r requirements/base.in
-sphinxcontrib-applehelp==1.0.2  # via sphinx
-sphinxcontrib-devhelp==1.0.2  # via sphinx
-sphinxcontrib-htmlhelp==1.0.3  # via sphinx
-sphinxcontrib-jsmath==1.0.1  # via sphinx
-sphinxcontrib-napoleon==0.7  # via -r requirements/base.in
-sphinxcontrib-qthelp==1.0.3  # via sphinx
-sphinxcontrib-serializinghtml==1.1.4  # via sphinx
+six==1.14.0               # via edx-opaque-keys, fs, pycontracts, python-dateutil, stevedore, xblock
 stevedore==1.32.0         # via edx-opaque-keys
 typing==3.7.4.1           # via fs
-urllib3==1.25.9           # via requests
 web-fragments==0.3.2      # via xblock
 webob==1.8.6              # via xblock
 xblock==1.3.1             # via -r requirements/base.in
