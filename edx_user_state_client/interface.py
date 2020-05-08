@@ -13,7 +13,7 @@ from xblock.fields import Scope, ScopeBase
 try:
     basestring
 except NameError:
-    basestring = str  # pylint: disable=invalid-name,redefined-builtin
+    basestring = str  # pylint: disable=invalid-name
 
 new_contract('UsageKey', UsageKey)
 new_contract('DefinitionKey', DefinitionKey)
@@ -51,7 +51,7 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
         )
 
 
-class XBlockUserStateClient(object):
+class XBlockUserStateClient:
     """
     First stab at an interface for accessing XBlock User State. This will have
     use StudentModule as a backing store in the default case.
