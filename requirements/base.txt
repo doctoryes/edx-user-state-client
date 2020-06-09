@@ -4,12 +4,12 @@
 #
 #    make upgrade
 #
-appdirs==1.4.3            # via fs
+appdirs==1.4.4            # via fs
 decorator==4.4.2          # via pycontracts
 edx-opaque-keys==2.1.0    # via -r requirements/base.in
 fs==2.4.11                # via xblock
 future==0.18.2            # via pycontracts
-lxml==4.5.0               # via xblock
+lxml==4.5.1               # via xblock
 markupsafe==1.1.1         # via xblock
 pbr==5.4.5                # via stevedore
 pycontracts==1.8.14       # via -r requirements/base.in
@@ -18,7 +18,7 @@ pyparsing==2.4.7          # via pycontracts
 python-dateutil==2.8.1    # via xblock
 pytz==2020.1              # via fs, xblock
 pyyaml==5.3.1             # via xblock
-six==1.14.0               # via edx-opaque-keys, fs, pycontracts, python-dateutil, stevedore, xblock
+six==1.15.0               # via edx-opaque-keys, fs, pycontracts, python-dateutil, stevedore, xblock
 stevedore==1.32.0         # via edx-opaque-keys
 typing==3.7.4.1           # via fs
 web-fragments==0.3.2      # via xblock

@@ -5,6 +5,7 @@
 
 coverage
 edx-lint
-nose
 pycodestyle
+pytest
+pytest-cov
 tox
