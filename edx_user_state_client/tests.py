@@ -152,7 +152,7 @@ class _UserStateClientTestUtils(TestCase):
             block_keys_to_state={
                 self._block(block): state
                 for block, state
-                in block_to_state.items()
+                in list(block_to_state.items())
             },
             scope=self.scope,
         )
@@ -368,7 +368,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
         mod_dates = self.get(user=0, block=0)
 
-        six.assertCountEqual(self, mod_dates.state.keys(), ["a"])
+        six.assertCountEqual(self, list(mod_dates.state.keys()), ["a"])
         self.assertGreater(mod_dates.updated, start_time)
         self.assertLess(mod_dates.updated, end_time)
 
@@ -394,13 +394,13 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
             [self._block(0), self._block(1)])
         six.assertCountEqual(
             self,
-            mod_dates[0].state.keys(),
+            list(mod_dates[0].state.keys()),
             ["a"])
         self.assertGreater(mod_dates[0].updated, start_time)
         self.assertLess(mod_dates[0].updated, mid_time)
         six.assertCountEqual(
             self,
-            mod_dates[1].state.keys(),
+            list(mod_dates[1].state.keys()),
             ["a"])
         self.assertGreater(mod_dates[1].updated, mid_time)
         self.assertLess(mod_dates[1].updated, end_time)
@@ -657,7 +657,7 @@ class DictUserStateClient(XBlockUserStateClient):
                 continue
 
             if fields is None:
-                current_fields = entry.state.keys()
+                current_fields = list(entry.state.keys())
             else:
                 current_fields = fields
 
@@ -668,7 +668,7 @@ class DictUserStateClient(XBlockUserStateClient):
             })
 
     def set_many(self, username, block_keys_to_state, scope=Scope.user_state):
-        for key, state in block_keys_to_state.items():
+        for key, state in list(block_keys_to_state.items()):
             if (username, key, scope) in self._history:
                 current_state = self._history[(username, key, scope)][0].state.copy()
                 current_state.update(state)
@@ -720,7 +720,7 @@ class DictUserStateClient(XBlockUserStateClient):
         You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, one_scope), entries in self._history.items():
+        for (_, key, one_scope), entries in list(self._history.items()):
             if entries[0].state is None:
                 continue
 
@@ -732,7 +732,7 @@ class DictUserStateClient(XBlockUserStateClient):
         You get no ordering guarantees. If you're using this method, you should be running in an
         async task.
         """
-        for (_, key, one_scope), entries in self._history.items():
+        for (_, key, one_scope), entries in list(self._history.items()):
             if entries[0].state is None:
                 continue
 

@@ -10,14 +10,9 @@ from contracts import contract, new_contract, ContractsMeta
 from opaque_keys.edx.keys import UsageKey, DefinitionKey
 from xblock.fields import Scope, ScopeBase
 
-try:
-    basestring
-except NameError:
-    basestring = str  # pylint: disable=invalid-name
-
 new_contract('UsageKey', UsageKey)
 new_contract('DefinitionKey', DefinitionKey)
-new_contract('basestring', basestring)
+new_contract('basestring', str)
 new_contract('datetime', datetime)
 new_contract('block_key', 'UsageKey|DefinitionKey|str|NoneType')
 
@@ -51,7 +46,7 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
         )
 
 
-class XBlockUserStateClient:
+class XBlockUserStateClient(metaclass=ContractsMeta):
     """
     First stab at an interface for accessing XBlock User State. This will have
     use StudentModule as a backing store in the default case.
@@ -72,8 +67,6 @@ class XBlockUserStateClient:
             backing it is smart enough to do authorization checks.
         3. This does not yet cover export-related functionality.
     """
-
-    __metaclass__ = ContractsMeta
 
     class ServiceUnavailable(Exception):
         """
