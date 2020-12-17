@@ -8,8 +8,8 @@ edx-user-state-client |Build Status| |Coverage Status|
 Python module for storing/querying user state in edx-platform. Contains interface which will handle
 all backends for user states.
 
-.. |Build Status| image:: https://travis-ci.org/edx/edx-user-state-client.svg?branch=master
-   :target: https://travis-ci.org/edx/edx-user-state-client
+.. |Build Status| image:: https://travis-ci.com/edx/edx-user-state-client.svg?branch=master
+   :target: https://travis-ci.com/edx/edx-user-state-client
 .. |Coverage Status| image:: https://coveralls.io/repos/github/edx/edx-user-state-client/badge.svg?branch=master
    :target: https://coveralls.io/github/edx/edx-user-state-client?branch=master
 
