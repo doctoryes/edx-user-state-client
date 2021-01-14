@@ -16,7 +16,7 @@ deploy:
   distributions: sdist bdist_wheel
   on:
     tags: true
-    python: 3.5
+    python: 3.8
     condition: $TOXENV = quality
   password:
     secure: RQGsxxXuoY0ZU8VCFHf0x3Rv0z/dSjz2dJ+lFj4v8Si4XO6rRI/msaJLGZlzvW1kCRpubpW28VHPH+Z0z5KfPy8CKS+IyeVpFAj1WoUf882EKiz9YE1ALLkhKiDBoLti46fQcs7gAR71MX2SO5BXIaqg3zs/T96b5R4moaJLB9vRaC76E0sL4eFQqGHa+tVKZmVBhhimXMalqQdC3cL4hK4o8o39ohkgNnN6S3vOtYqbt0xvhueMTqe1eVGMEg0W7eRYu7Is2OEbGGnL6TEqx/BZsgTYZxzrLSrhrw5OFkgHby74tp2Z2ymC+Xsc9VbYQpOLPVDL2KAeQUwJM5HTIcB/RkaX9btX6j2IxWsJ5fkIfHWmYM1d0yUNKC/prKrACaqwnjyzpqEFK7CFw7Abg2MvZtGLZ+xHz18FTe4bOQuTx16sAvWbp/hs85TM3RZf1iKX3LddM/5DRizHKmino1WFjDUwPxszHm9Hz+dLWljCi38ZGbI5L8oWchbgNgCS8HWzR212hQsDnonJO4zPmYbUWmXaC0xKqEXnvKznlbHMoMs5SPqeFSxVXSvXuuX6dj8kmenpHs0dNCEb/jviU8146DWTNfxXhvv6YycSSa+2csLUoId/60lRzBGQ0bMt/NbawfBsM5vDfvozkXjTUS7UERbhQA9vEcoNhXigGXI=
