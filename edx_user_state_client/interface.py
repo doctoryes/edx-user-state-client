@@ -112,8 +112,8 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         try:
             return next(self.get_many(username, [block_key], scope, fields=fields))
-        except StopIteration:
-            raise self.DoesNotExist()
+        except StopIteration as exception:
+            raise self.DoesNotExist() from exception
 
     @contract(
         username="basestring",

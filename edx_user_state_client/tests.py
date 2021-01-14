@@ -14,11 +14,8 @@ test suite, use the snippet:
             self.client = MyUserStateClient()  # Add your setup here
 
 """
-
 from datetime import datetime
 from unittest import TestCase
-
-import six
 
 import pytz
 from contracts import contract
