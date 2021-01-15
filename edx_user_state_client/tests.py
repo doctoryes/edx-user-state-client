@@ -14,11 +14,8 @@ test suite, use the snippet:
             self.client = MyUserStateClient()  # Add your setup here
 
 """
-
 from datetime import datetime
 from unittest import TestCase
-
-import six
 
 import pytz
 from contracts import contract
@@ -46,7 +43,7 @@ class _UserStateClientTestUtils(TestCase):
     @contract(user=int)
     def _user(user):
         """Return the username for user ``user``."""
-        return "user{}".format(user)
+        return f"user{user}"
 
     @contract(block=int)
     def _block(self, block):
@@ -55,7 +52,7 @@ class _UserStateClientTestUtils(TestCase):
         return BlockUsageLocator(
             self._course(course),
             self._block_type(block),
-            'block{}'.format(block)
+            f'block{block}'
         )
 
     @staticmethod
@@ -69,9 +66,9 @@ class _UserStateClientTestUtils(TestCase):
     def _course(course):
         """Return a CourseKey for the course ``course``"""
         return CourseLocator(
-            'org{}'.format(course),
-            'course{}'.format(course),
-            'run{}'.format(course),
+            f'org{course}',
+            f'course{course}',
+            f'run{course}',
         )
 
     @contract(user=int, block=int, fields="list(string)|None")
@@ -283,8 +280,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
     def test_get_many(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'b': 'c'}})
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             [(entry.username, entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [
                 (self._user(0), self._block(0), {'a': 'b'}),
@@ -325,7 +321,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
             self.get(user=0, block=0)
 
     def test_delete_many(self):
-        six.assertCountEqual(self, self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -333,10 +329,10 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1])
-        six.assertCountEqual(self, self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
     def test_delete_many_partial(self):
-        six.assertCountEqual(self, self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -344,14 +340,13 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1], fields=['a'])
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             [(entry.block_key, entry.state) for entry in self.get_many(user=0, blocks=[0, 1])],
             [(self._block(1), {'b': 'c'})]
         )
 
     def test_delete_many_last_field(self):
-        six.assertCountEqual(self, self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
         self.set_many(user=0, block_to_state={
             0: {'a': 'b'},
@@ -359,7 +354,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
         })
 
         self.delete_many(user=0, blocks=[0, 1], fields=['a', 'b'])
-        six.assertCountEqual(self, self.get_many(user=0, blocks=[0, 1]), [])
+        self.assertCountEqual(self.get_many(user=0, blocks=[0, 1]), [])
 
     def test_get_mod_date(self):
         start_time = datetime.now(pytz.utc)
@@ -368,7 +363,7 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
 
         mod_dates = self.get(user=0, block=0)
 
-        six.assertCountEqual(self, list(mod_dates.state.keys()), ["a"])
+        self.assertCountEqual(list(mod_dates.state.keys()), ["a"])
         self.assertGreater(mod_dates.updated, start_time)
         self.assertLess(mod_dates.updated, end_time)
 
@@ -388,18 +383,15 @@ class _UserStateClientTestCRUD(_UserStateClientTestUtils):
             blocks=[0, 1],
             fields=["a"]))
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             [result.block_key for result in mod_dates],
             [self._block(0), self._block(1)])
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             list(mod_dates[0].state.keys()),
             ["a"])
         self.assertGreater(mod_dates[0].updated, start_time)
         self.assertLess(mod_dates[0].updated, mid_time)
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             list(mod_dates[1].state.keys()),
             ["a"])
         self.assertGreater(mod_dates[1].updated, mid_time)
@@ -492,8 +484,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     __test__ = False
 
     def test_iter_blocks_empty(self):
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             self.iter_all_for_block(block=0),
             []
         )
@@ -501,14 +492,12 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     def test_iter_blocks_single_user(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1: {'c': 'd'}})
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             (item.state for item in self.iter_all_for_block(block=0)),
             [{'a': 'b'}]
         )
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             (item.state for item in self.iter_all_for_block(block=1)),
             [{'c': 'd'}]
         )
@@ -517,8 +506,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         for user in range(3):
             self.set_many(user, {0: {'a': user}, 1: {'c': user}})
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
@@ -533,8 +521,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
 
         self.delete(user=1, block=0)
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             ((item.username, item.state) for item in self.iter_all_for_block(block=0)),
             [
                 (self._user(0), {'a': 0}),
@@ -543,8 +530,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         )
 
     def test_iter_course_empty(self):
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             self.iter_all_for_course(course=0),
             []
         )
@@ -552,14 +538,12 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
     def test_iter_course_single_user(self):
         self.set_many(user=0, block_to_state={0: {'a': 'b'}, 1001: {'c': 'd'}})
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             (item.state for item in self.iter_all_for_course(course=0)),
             [{'a': 'b'}]
         )
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             (item.state for item in self.iter_all_for_course(course=1)),
             [{'c': 'd'}]
         )
@@ -575,8 +559,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
                     }
                 )
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
             [
                 (self._user(0), self._block(1000), {'course': 1}),
@@ -600,8 +583,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
         self.delete(user=1, block=0)
         self.delete(user=1, block=1001)
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=0)),
             [
                 (self._user(0), self._block(0), {'course': 0}),
@@ -610,8 +592,7 @@ class _UserStateClientTestIterAll(_UserStateClientTestUtils):
             ]
         )
 
-        six.assertCountEqual(
-            self,
+        self.assertCountEqual(
             ((item.username, item.block_key, item.state) for item in self.iter_all_for_course(course=1)),
             [
                 (self._user(0), self._block(1000), {'course': 0}),
@@ -712,8 +693,7 @@ class DictUserStateClient(XBlockUserStateClient):
         if (username, block_key, scope) not in self._history:
             raise self.DoesNotExist(username, block_key, scope)
 
-        for entry in self._history[(username, block_key, scope)]:
-            yield entry
+        yield from self._history[(username, block_key, scope)]
 
     def iter_all_for_block(self, block_key, scope=Scope.user_state):
         """
@@ -752,5 +732,5 @@ class TestDictUserStateClient(UserStateClientTestBase):
     __test__ = True
 
     def setUp(self):
-        super(TestDictUserStateClient, self).setUp()
+        super().setUp()
         self.client = DictUserStateClient()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # EdX User State Client documentation build configuration file, created by
 # sphinx-quickstart on Thu Jul  2 14:24:36 2015.
