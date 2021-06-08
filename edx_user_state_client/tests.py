@@ -18,7 +18,6 @@ from datetime import datetime
 from unittest import TestCase
 
 import pytz
-from contracts import contract
 from opaque_keys.edx.locator import BlockUsageLocator, CourseLocator
 from xblock.fields import Scope
 
@@ -40,12 +39,10 @@ class _UserStateClientTestUtils(TestCase):
     client = None
 
     @staticmethod
-    @contract(user=int)
     def _user(user):
         """Return the username for user ``user``."""
         return f"user{user}"
 
-    @contract(block=int)
     def _block(self, block):
         """Return a UsageKey for the block ``block``."""
         course = block // 1000
@@ -56,13 +53,11 @@ class _UserStateClientTestUtils(TestCase):
         )
 
     @staticmethod
-    @contract(block=int)
     def _block_type(block):  # pylint: disable=unused-argument
         """Return the block type for the specified ``block``."""
         return 'block_type'
 
     @staticmethod
-    @contract(course=int)
     def _course(course):
         """Return a CourseKey for the course ``course``"""
         return CourseLocator(
@@ -71,7 +66,6 @@ class _UserStateClientTestUtils(TestCase):
             f'run{course}',
         )
 
-    @contract(user=int, block=int, fields="list(string)|None")
     def get(self, user, block, fields=None):
         """
         Get the state for the specified user and block.
@@ -87,7 +81,6 @@ class _UserStateClientTestUtils(TestCase):
             fields=fields
         )
 
-    @contract(user=int, block=int, state="dict(string:*)")
     def set(self, user, block, state):
         """
         Set the state for the specified user and block.
@@ -103,7 +96,6 @@ class _UserStateClientTestUtils(TestCase):
             scope=self.scope,
         )
 
-    @contract(user=int, block=int, fields="list(string)|None")
     def delete(self, user, block, fields=None):
         """
         Delete the state for the specified user and block.
@@ -119,7 +111,6 @@ class _UserStateClientTestUtils(TestCase):
             fields=fields
         )
 
-    @contract(user=int, blocks="list(int)", fields="list(string)|None")
     def get_many(self, user, blocks, fields=None):
         """
         Get the state for the specified user and blocks.
@@ -135,7 +126,6 @@ class _UserStateClientTestUtils(TestCase):
             fields=fields,
         )
 
-    @contract(user=int, block_to_state="dict(int: dict(string: *))")
     def set_many(self, user, block_to_state):
         """
         Set the state for the specified user and blocks.
@@ -154,7 +144,6 @@ class _UserStateClientTestUtils(TestCase):
             scope=self.scope,
         )
 
-    @contract(user=int, blocks="list(int)", fields="list(string)|None")
     def delete_many(self, user, blocks, fields=None):
         """
         Delete the state for the specified user and blocks.
@@ -170,7 +159,6 @@ class _UserStateClientTestUtils(TestCase):
             fields=fields,
         )
 
-    @contract(user=int, block=int)
     def get_history(self, user, block):
         """
         Return the state history for the specified user and block.
@@ -185,7 +173,6 @@ class _UserStateClientTestUtils(TestCase):
             scope=self.scope,
         )
 
-    @contract(block=int)
     def iter_all_for_block(self, block):
         """
         Yield the state for all users for the specified block.
@@ -199,7 +186,6 @@ class _UserStateClientTestUtils(TestCase):
             scope=self.scope,
         )
 
-    @contract(course=int, block_type="string|None")
     def iter_all_for_course(self, course, block_type=None):
         """
         Yield the state for all users for the specified block.

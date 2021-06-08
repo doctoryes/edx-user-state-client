@@ -26,7 +26,7 @@ def is_requirement(line):
 
 setup(
     name="edx_user_state_client",
-    version="1.3.1",
+    version="1.3.2",
     packages=[
         "edx_user_state_client",
     ],
