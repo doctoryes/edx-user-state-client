@@ -2,5 +2,4 @@
 -c constraints.txt
 
 edx-opaque-keys
-PyContracts
 xblock

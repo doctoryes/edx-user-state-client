@@ -4,17 +4,8 @@ A baseclass for a generic client for accessing XBlock Scope.user_state field dat
 
 from abc import abstractmethod
 from collections import namedtuple
-from datetime import datetime
 
-from contracts import contract, new_contract, ContractsMeta
-from opaque_keys.edx.keys import UsageKey, DefinitionKey
-from xblock.fields import Scope, ScopeBase
-
-new_contract('UsageKey', UsageKey)
-new_contract('DefinitionKey', DefinitionKey)
-new_contract('basestring', str)
-new_contract('datetime', datetime)
-new_contract('block_key', 'UsageKey|DefinitionKey|str|NoneType')
+from xblock.fields import Scope
 
 
 class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', 'state', 'updated', 'scope'])):
@@ -46,7 +37,7 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
         )
 
 
-class XBlockUserStateClient(metaclass=ContractsMeta):
+class XBlockUserStateClient():
     """
     First stab at an interface for accessing XBlock User State. This will have
     use StudentModule as a backing store in the default case.
@@ -86,14 +77,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         pass
 
-    @contract(
-        username="basestring",
-        block_key="block_key",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        returns=XBlockUserState,
-        modify_docstring=False,
-    )
     def get(self, username, block_key, scope=Scope.user_state, fields=None):
         """
         Retrieve the stored XBlock state for a single xblock usage.
@@ -115,14 +98,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         except StopIteration as exception:
             raise self.DoesNotExist() from exception
 
-    @contract(
-        username="basestring",
-        block_key="block_key",
-        state="dict(basestring: *)",
-        scope=ScopeBase,
-        returns=None,
-        modify_docstring=False,
-    )
     def set(self, username, block_key, state, scope=Scope.user_state):
         """
         Set fields for a particular XBlock.
@@ -135,14 +110,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         self.set_many(username, {block_key: state}, scope)
 
-    @contract(
-        username="basestring",
-        block_key="block_key",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        returns=None,
-        modify_docstring=False,
-    )
     def delete(self, username, block_key, scope=Scope.user_state, fields=None):
         """
         Delete the stored XBlock state for a single xblock usage.
@@ -155,13 +122,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         return self.delete_many(username, [block_key], scope, fields=fields)
 
-    @contract(
-        username="basestring",
-        block_keys="seq(block_key)|set(block_key)",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        modify_docstring=False,
-    )
     @abstractmethod
     def get_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         """
@@ -179,13 +139,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         raise NotImplementedError()
 
-    @contract(
-        username="basestring",
-        block_keys_to_state="dict(block_key: dict(basestring: *))",
-        scope=ScopeBase,
-        returns=None,
-        modify_docstring=False,
-    )
     @abstractmethod
     def set_many(self, username, block_keys_to_state, scope=Scope.user_state):
         """
@@ -201,14 +154,6 @@ class XBlockUserStateClient(metaclass=ContractsMeta):
         """
         raise NotImplementedError()
 
-    @contract(
-        username="basestring",
-        block_keys="seq(block_key)|set(block_key)",
-        scope=ScopeBase,
-        fields="seq(basestring)|set(basestring)|None",
-        returns=None,
-        modify_docstring=False,
-    )
     @abstractmethod
     def delete_many(self, username, block_keys, scope=Scope.user_state, fields=None):
         """
