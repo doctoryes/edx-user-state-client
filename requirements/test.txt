@@ -48,7 +48,7 @@ fs==2.4.13
     #   xblock
 iniconfig==1.1.1
     # via pytest
-isort==5.8.0
+isort==5.9.1
     # via pylint
 jinja2==3.0.1
     # via code-annotations
