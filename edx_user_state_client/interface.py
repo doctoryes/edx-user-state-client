@@ -31,7 +31,7 @@ class XBlockUserState(namedtuple('_XBlockUserState', ['username', 'block_key', '
     __slots__ = ()
 
     def __repr__(self):
-        return "{}{!r}".format(
+        return "{}{!r}".format(  # pylint: disable=consider-using-f-string
             self.__class__.__name__,
             tuple(self)
         )
