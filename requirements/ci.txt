@@ -4,9 +4,9 @@
 #
 #    make upgrade
 #
-coverage==6.4.1
+coverage==6.4.2
     # via -r requirements/ci.in
-distlib==0.3.4
+distlib==0.3.5
     # via virtualenv
 filelock==3.7.1
     # via
