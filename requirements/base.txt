@@ -28,7 +28,7 @@ six==1.16.0
     # via
     #   fs
     #   python-dateutil
-stevedore==3.5.0
+stevedore==4.0.0
     # via edx-opaque-keys
 web-fragments==2.0.0
     # via xblock
