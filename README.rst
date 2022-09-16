@@ -8,8 +8,8 @@ edx-user-state-client |Build Status| |Coverage Status|
 Python module for storing/querying user state in edx-platform. Contains interface which will handle
 all backends for user states.
 
-.. |badge-ci| image:: https://github.com/edx/edx-user-state-client/workflows/Python%20CI/badge.svg?branch=master
-   :target: https://github.com/edx/edx-user-state-client/actions?query=workflow%3A%22Python+CI%22
+.. |badge-ci| image:: https://github.com/openedx/edx-user-state-client/workflows/Python%20CI/badge.svg?branch=master
+   :target: https://github.com/openedx/edx-user-state-client/actions?query=workflow%3A%22Python+CI%22
 .. |Coverage Status| image:: https://coveralls.io/repos/github/edx/edx-user-state-client/badge.svg?branch=master
    :target: https://coveralls.io/github/edx/edx-user-state-client?branch=master
 
@@ -22,7 +22,7 @@ work-in-progress and is changing frequently at this time.
 See our `CONTRIBUTING`_ file for more information – it also contains guidelines for how to
 maintain high code quality, which will make your contribution more likely to be accepted.
 
-.. _CONTRIBUTING: https://github.com/edx/edx-platform/blob/master/CONTRIBUTING.rst
+.. _CONTRIBUTING: https://github.com/openedx/edx-platform/blob/master/CONTRIBUTING.rst
 
 
 Reporting Security Issues
