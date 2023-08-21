@@ -90,6 +90,7 @@ VERSION = get_version("edx_user_state_client", "__init__.py")
 setup(
     name="edx_user_state_client",
     version=VERSION,
+    url="https://github.com/openedx/edx-user-state-client",
     packages=[
         "edx_user_state_client",
     ],
