@@ -1,3 +1,9 @@
+⚠️ Deprecation Notice ⚠️
+------------------------
+
+As of 2022-11-24, `edx-user-state-client is deprecated <//https://github.com/openedx/public-engineering/issues/167>`_.
+In the near future, this repository will be archived.
+
 Part of `edX code`_.
 
 .. _`edX code`: http://code.edx.org/
